@@ -5,7 +5,6 @@ from core.plugin_manager import PluginManager, RunContext
 
 def compile_model(text):
     blocks = parse_blocks(text)
-
     manager = PluginManager()
 
     print("Loading plugins...")
@@ -21,8 +20,5 @@ def compile_model(text):
     manager.run_hook_per_block("transform", blocks, context)
     manager.run_hook_per_block("generate", blocks, context)
     manager.run_hook_with_args("on_finalize", blocks, context)
-
-    # sql = generate_sql([b for b in blocks if b['type'] == 'entity'])
-    # return {'sql': sql, 'blocks': blocks, 'context': context}
 
     return {'status': 'done'}

@@ -6,15 +6,15 @@ class SqlGeneratorPlugin:
             name="Sql Generator Plugin",
             block_types=['entity'],
             hooks={
-                "on_block": self.on_entity
+                "generate": self.generate
             }
         )
 
-    def on_entity(self, block, context):
+    def generate(self, block, context):
         print(f"[SQL Plugin] Processing entity: {block['name']}")
         print(self._generate_sql(block))
 
-    def _generate_sql(block):
+    def _generate_sql(self, block):
         sql_statements = []
         cols = ["  id INT PRIMARY KEY AUTO_INCREMENT"]
         for field in block['assignments']:
