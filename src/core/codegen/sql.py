@@ -1,10 +1,10 @@
 
-def generate_sql(entities):
+def generate_sql(blocks):
     sql_statements = []
-    for entity in entities:
+    for block in blocks:
         cols = ["  id INT PRIMARY KEY AUTO_INCREMENT"]
-        for field in entity['fields']:
-            cols.append(f"  {field} VARCHAR(255)")
-        sql = f"CREATE TABLE {entity['name']} (\n" + ",\n".join(cols) + "\n);"
+        for field in block['assignments']:
+            cols.append(f"  {field['name']} VARCHAR(255)")
+        sql = f"CREATE TABLE {block['name']} (\n" + ",\n".join(cols) + "\n);"
         sql_statements.append(sql)
     return "\n\n".join(sql_statements)

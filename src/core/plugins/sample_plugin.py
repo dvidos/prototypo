@@ -1,4 +1,4 @@
 
-class Plugin:
-    def on_entity_declared(self, entity):
-        print(f"[plugin] Entity declared: {entity['name']}")
+class SamplePlugin:
+    def on_block_declared(self, block):
+        print(f"[SamplePlugin] Block declared: {block['name']}")

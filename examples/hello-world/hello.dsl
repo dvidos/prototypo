@@ -4,3 +4,6 @@ entity Customer {
     Address
   }
 }
+environment Dev {
+    type = docker
+}

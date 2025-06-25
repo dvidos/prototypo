@@ -1,15 +1,83 @@
-from core.parser import parse_entities
+from unittest.result import failfast
 
-def test_simple_entity_parsing():
+from core.parser import parse_blocks
+
+def test_parser_comprehensive():
     text = """
+    # A block with type and name
     entity Customer {
-      fields {
-        Name
-        Email
+      Fullname                # type: None, name: Fullname
+      string Email = "abc@x.com"  # type: string, name: Email, value: string
+      Meta {
+        CreatedBy
+        CreatedAt
       }
     }
+
+    # A block with only name
+    Settings {
+      Host = "localhost"
+      Port = 8080
+      Debug = true
+      Logging {
+        Level = "info"
+        Enabled = true
+      }
+    }
+
+    # A completely anonymous block
+    {
+      Note = "anonymous"
+    }
     """
-    entities = parse_entities(text)
-    assert len(entities) == 1
-    assert entities[0]['name'] == 'Customer'
-    assert entities[0]['fields'] == ['Name', 'Email']
+
+    blocks = parse_blocks(text)
+    assert len(blocks) == 3
+
+    # --- First block ---
+    customer = blocks[0]
+    assert customer['type'] == 'entity'
+    assert customer['name'] == 'Customer'
+    assert any(a['name'] == 'Fullname' and a['type'] is None for a in customer['assignments'])
+    assert any(a['name'] == 'Email' and a['type'] == 'string' and a['value'] == '"abc@x.com"' for a in customer['assignments'])
+    meta = next(c for c in customer['children'] if c['name'] == 'Meta')
+    assert any(f['name'] == 'CreatedBy' for f in meta['assignments'])
+    assert any(f['name'] == 'CreatedAt' for f in meta['assignments'])
+
+    # --- Second block ---
+    settings = blocks[1]
+    assert settings['type'] is None
+    assert settings['name'] == 'Settings'
+    assert any(a['name'] == 'Host' and a['value'] == '"localhost"' for a in settings['assignments'])
+    assert any(a['name'] == 'Port' and a['value'] == '8080' for a in settings['assignments'])
+    assert any(a['name'] == 'Debug' and a['value'] == 'true' for a in settings['assignments'])
+    logging = next(c for c in settings['children'] if c['name'] == 'Logging')
+    assert any(a['name'] == 'Level' and a['value'] == '"info"' for a in logging['assignments'])
+    assert any(a['name'] == 'Enabled' and a['value'] == 'true' for a in logging['assignments'])
+
+    # --- Third block (anonymous) ---
+    anon = blocks[2]
+    assert anon['type'] is None
+    assert anon['name'] is None
+    assert any(a['name'] == 'Note' and a['value'] == '"anonymous"' for a in anon['assignments'])
+
+
+def test_minimal_error():
+    text = """
+    {
+      line1
+    }
+    block1 {
+      line1
+    }
+    entity block2 {
+        one two
+    }
+    """
+    blocks = parse_blocks(text)
+    assert blocks[0]['type'] is None
+    assert blocks[0]['name'] is None
+    assert blocks[1]['type'] is None
+    assert blocks[1]['name'] == 'block1'
+    assert blocks[2]['type'] == 'entity'
+    assert blocks[2]['name'] == 'block2'
