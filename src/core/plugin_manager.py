@@ -1,53 +1,64 @@
+from typing import List
 import importlib
 import inspect
 import os
 import pkgutil
 
+class PluginRegistration:
+    def __init__(self, name, block_types=None, hooks=None):
+        self.name = name
+        self.block_types = block_types or []
+        self.hooks = hooks or {}
+
+class RunContext:
+    def __init__(self):
+        self.errors = []
+        self.output = []
+
+    def error(self, message):
+        self.errors.append(message)
+
+    def print(self, message):
+        self.output.append(message)
+
+
 class PluginManager:
     def __init__(self):
-        self.plugins = []
-        self.hooks = {
-            "on_block": [],
-            "on_validate": [],
-            "on_transform": [],
-            "on_generate_sql": [],
-            "on_finalize": []
-        }
-        self.block_type_map = {}
+        self.registrations = []
 
     def load_plugins(self, plugin_package_path="core.plugins"):
         plugin_dir = os.path.join(os.path.dirname(__file__), 'plugins')
         for _, module_name, _ in pkgutil.iter_modules([plugin_dir]):
-            print("** " + module_name)
             full_module_name = f"{plugin_package_path}.{module_name}"
             module = importlib.import_module(full_module_name)
 
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if name.endswith("Plugin"):
-                    print("** instantiating " + str(name) + " " + str(obj))
                     instance = obj()
                     registration = instance.register()
+                    self.registrations.append(registration)
 
-                    self.plugins.append(registration)
+    def run_hook_with_args(self, hook_name, blocks, context: RunContext):
+        for reg in self.registrations:
+            if hook_name in reg.hooks:
+                reg.hooks[hook_name](blocks, context)
 
-                    for hook_name, callback in registration.get("hooks", {}).items():
-                        self.hooks.setdefault(hook_name, []).append(callback)
+    def run_hook_per_block(self, hook_name, blocks, context: RunContext):
+        for reg in self.registrations:
+            if hook_name not in reg.hooks:
+                continue
+            callback = reg.hooks[hook_name]
+            for block in blocks:
+                self._run_block_hook_recursively(callback, block, reg.block_types, context)
 
-                    for btype in registration.get("block_types", []):
-                        self.block_type_map.setdefault(btype, []).append(instance)
-
-    def run_hook(self, hook_name, *args):
-        for fn in self.hooks.get(hook_name, []):
-            fn(*args)
-
-    def dispatch_blocks(self, blocks, context):
-        for block in blocks:
-            for plugin in self.block_type_map.get(block['type'], []):
-                cb = plugin.register().get('hooks', {}).get('on_block')
-                if cb:
-                    cb(block, context)
+    def _run_block_hook_recursively(self, callback, block, block_types: List, context: RunContext):
+        if len(block_types) > 0 and block['type'] not in block_types:
+            return
+        callback(block, context)
+        for child in block['children']:
+            self._run_block_hook_recursively(callback, child, block_types, context)
 
     def list_plugins(self):
-        return [plugin.get("name", "Unnamed Plugin") for plugin in self.plugins]
-
+        for registration in self.registrations:
+            print(" - " + registration.name)
 

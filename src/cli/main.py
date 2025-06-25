@@ -11,8 +11,7 @@ def main():
         content = f.read()
 
     result = compile_model(content)
-    print("\nGenerated SQL:\n")
-    print(result['sql'])
+    print("Result = " + str(result))
 
 if __name__ == "__main__":
     main()
