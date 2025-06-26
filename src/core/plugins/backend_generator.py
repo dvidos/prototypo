@@ -24,7 +24,7 @@ class SamplePlugin:
             name="backend",
             build_path="services/backend",
             dockerfile="Dockerfile",
-            ports=["8000:8000"],
+            ports=["8080:8080"],
             depends_on=["db"]
         ))
 
@@ -44,14 +44,19 @@ class SamplePlugin:
         self.generate_dockerfile(context)
 
     def generate_app_py(self, context: RunContext):
-        content = '''\
+        db_url = self.get_db_url(context)
+        if not db_url:
+            context.error("BackendGenerator: No database service named 'db' found")
+            return
+
+        content = f'''\
             from fastapi import FastAPI
             from databases import Database
             from pydantic import BaseModel
         
             app = FastAPI()
         
-            DATABASE_URL = "postgresql://user:password@db:5432/mydatabase"
+            DATABASE_URL = "{db_url}"
             database = Database(DATABASE_URL)
         
             @app.on_event("startup")
@@ -68,16 +73,15 @@ class SamplePlugin:
         
             @app.get("/")
             async def root():
-                return {"message": "Hello from FastAPI"}
+                return {{"message": "Hello from FastAPI"}}
         
-            @app.get("/items/{item_id}")
+            @app.get("/items/{{item_id}}")
             async def read_item(item_id: int):
                 query = "SELECT id, name FROM items WHERE id = :item_id"
-                result = await database.fetch_one(query=query, values={"item_id": item_id})
+                result = await database.fetch_one(query=query, values={{"item_id": item_id}})
                 if result:
-                    return {"id": result['id'], "name": result['name']}
-                return {"error": "Item not found"}
-        
+                    return {{"id": result['id'], "name": result['name']}}
+                return {{"error": "Item not found"}}
         '''
         # Save to services/backend/app.py
         context.write_out_file("services/backend", "app.py", dedent(content))
