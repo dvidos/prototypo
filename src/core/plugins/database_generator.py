@@ -1,11 +1,12 @@
 from core.plugin_manager import PluginRegistration
 from core.run_context import RunContext
+from core.model.service_definition import ServiceDefinition
 
 
 class SamplePlugin:
     def register(self):
         return PluginRegistration(
-            name="Sample Plugin",
+            name="Database Generator",
             block_types=[],
             hooks={
                 "on_init": self.on_init,
@@ -16,20 +17,30 @@ class SamplePlugin:
             }
         )
 
-    def on_block_declared(self, block):
-        print(f"[SamplePlugin] Block declared: {block['name']}")
-
     def on_init(self, blocks, context: RunContext):
-        print("[SamplePlugin] on_init()")
+        # we could validate if we have any entities first
+        context.add_service(ServiceDefinition(
+            name="db",
+            image="postgres:15",
+            ports=["5432:5432"],
+            environment={
+                "POSTGRES_USER": "admin",
+                "POSTGRES_PASSWORD": "adminpass",
+                "POSTGRES_DB": "prototypo"
+            },
+            volumes=["pgdata:/var/lib/postgresql/data"],
+            depends_on=[],
+        ))
+        context.add_volume("pgdata")
 
     def validate(self, block, context: RunContext):
-        print("[SamplePlugin] validate(), block=" + block['name'])
+        ...
 
     def transform(self, block, context: RunContext):
-        print("[SamplePlugin] transform(), block=" + block['name'])
+        ...
 
     def generate(self, block, context: RunContext):
-        print("[SamplePlugin] generate(), block=" + block['name'])
+        ...
 
     def on_finalize(self, blocks, context: RunContext):
-        print("[SamplePlugin] on_finalize()")
+        ...

@@ -3,24 +3,14 @@ import importlib
 import inspect
 import os
 import pkgutil
+from core.run_context import RunContext
+
 
 class PluginRegistration:
     def __init__(self, name, block_types=None, hooks=None):
         self.name = name
         self.block_types = block_types or []
         self.hooks = hooks or {}
-
-class RunContext:
-    def __init__(self):
-        self.errors = []
-        self.output = []
-
-    def error(self, message):
-        self.errors.append(message)
-
-    def print(self, message):
-        self.output.append(message)
-
 
 class PluginManager:
     def __init__(self):

@@ -1,6 +1,6 @@
 from core.parser import parse_blocks
-from core.codegen.sql import generate_sql
-from core.plugin_manager import PluginManager, RunContext
+from core.plugin_manager import PluginManager
+from core.run_context import RunContext
 
 
 def compile_model(text):
@@ -14,7 +14,7 @@ def compile_model(text):
     manager.list_plugins()
 
     print("Running actions:")
-    context = RunContext()
+    context = RunContext("./out/")
     manager.run_hook_with_args("on_init", blocks, context)
     manager.run_hook_per_block("validate", blocks, context)
     manager.run_hook_per_block("transform", blocks, context)
