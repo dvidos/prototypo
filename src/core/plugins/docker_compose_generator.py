@@ -3,7 +3,7 @@ import yaml
 from core.plugin_manager import PluginRegistration
 from core.run_context import RunContext
 
-class SamplePlugin:
+class DockerComposeGenerator:
     def register(self):
         return PluginRegistration(
             name="Database Generator",

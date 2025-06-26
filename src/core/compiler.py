@@ -16,9 +16,24 @@ def compile_model(text):
     print("Running actions:")
     context = RunContext("./out/")
     manager.run_hook_with_args("on_init", blocks, context)
+    if context.errors:
+        print("Errors!\n- " + "\n- ".join(context.errors))
+        return
     manager.run_hook_per_block("validate", blocks, context)
+    if context.errors:
+        print("Errors!\n- " + "\n- ".join(context.errors))
+        return
     manager.run_hook_per_block("transform", blocks, context)
+    if context.errors:
+        print("Errors!\n- " + "\n- ".join(context.errors))
+        return
     manager.run_hook_per_block("generate", blocks, context)
+    if context.errors:
+        print("Errors!\n- " + "\n- ".join(context.errors))
+        return
     manager.run_hook_with_args("on_finalize", blocks, context)
+    if context.errors:
+        print("Errors!\n- " + "\n- ".join(context.errors))
+        return
 
-    return {'status': 'done'}
+    print("Success!")

@@ -3,7 +3,7 @@ from core.run_context import RunContext
 from core.model.service_definition import ServiceDefinition
 
 
-class SamplePlugin:
+class DatabaseGeneratorPlugin:
     def register(self):
         return PluginRegistration(
             name="Database Generator",

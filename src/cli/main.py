@@ -10,8 +10,7 @@ def main():
     with open(input_file) as f:
         content = f.read()
 
-    result = compile_model(content)
-    print("Result = " + str(result))
+    compile_model(content)
 
 if __name__ == "__main__":
     main()

@@ -17,19 +17,25 @@ class SamplePlugin:
         )
 
     def on_block_declared(self, block):
-        print(f"[SamplePlugin] Block declared: {block['name']}")
+        # print(f"[SamplePlugin] Block declared: {block['name']}")
+        ...
 
     def on_init(self, blocks, context: RunContext):
-        print("[SamplePlugin] on_init()")
+        # print("[SamplePlugin] on_init()")
+        ...
 
     def validate(self, block, context: RunContext):
-        print("[SamplePlugin] validate(), block=" + block['name'])
+        # print("[SamplePlugin] validate(), block=" + block['name'])
+        ...
 
     def transform(self, block, context: RunContext):
-        print("[SamplePlugin] transform(), block=" + block['name'])
+        # print("[SamplePlugin] transform(), block=" + block['name'])
+        ...
 
     def generate(self, block, context: RunContext):
-        print("[SamplePlugin] generate(), block=" + block['name'])
+        # print("[SamplePlugin] generate(), block=" + block['name'])
+        ...
 
     def on_finalize(self, blocks, context: RunContext):
-        print("[SamplePlugin] on_finalize()")
+        # print("[SamplePlugin] on_finalize()")
+        ...
