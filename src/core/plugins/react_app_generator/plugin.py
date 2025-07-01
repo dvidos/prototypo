@@ -53,21 +53,21 @@ class ReactAppGeneratorPlugin:
         text = self._renderer.render("src/App.js", {
             "app": context.frontend_app
         })
-        context.write_out_file("services/frontend/src", "App.js", text)
+        context.write_out_file("services/frontend/src/App.js", text)
 
     def generate_dockerfile(self, context: RunContext):
         text = self._renderer.render("Dockerfile", {})
-        context.write_out_file("services/frontend", "Dockerfile", text)
+        context.write_out_file("services/frontend/Dockerfile", text)
 
     def generate_package_json(self, context: RunContext):
         text = self._renderer.render("package.json", {})
-        context.write_out_file("services/frontend", "package.json", text)
+        context.write_out_file("services/frontend/package.json", text)
 
     def generate_public_html(self, context: RunContext):
         text = self._renderer.render("public/index.html", {})
-        context.write_out_file("services/frontend/public", "index.html", text)
+        context.write_out_file("services/frontend/public/index.html", text)
 
     def generate_index_js(self, context: RunContext):
         text = self._renderer.render("src/index.js", {})
-        context.write_out_file("services/frontend/src", "index.js", text)
+        context.write_out_file("services/frontend/src/index.js", text)
 

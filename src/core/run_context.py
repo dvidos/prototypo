@@ -28,11 +28,20 @@ class RunContext:
         """ Adds a volume for the docker-compose file. """
         self.volumes.append(volume)
 
-
-    def write_out_file(self, subdir, filename, text):
-        """ Writes text to a file in the specified subdirectory of the output directory."""
+    def write_out_file(self, out_sub_path, text):
+        """Writes text to a file, splitting the path into subdir and filename."""
+        subdir, filename = os.path.split(out_sub_path)
         full_dir = os.path.join(self.out_dir, subdir)
-        os.makedirs(full_dir, exist_ok=True)  # creates dir if needed, no error if exists
+        os.makedirs(full_dir, exist_ok=True)
         full_path = os.path.join(full_dir, filename)
         with open(full_path, 'w', encoding='utf-8') as f:
             f.write(text)
+
+    def create_out_file(self, out_sub_path):
+        """Writes text to a file, splitting the path into subdir and filename."""
+        subdir, filename = os.path.split(out_sub_path)
+        full_dir = os.path.join(self.out_dir, subdir)
+        os.makedirs(full_dir, exist_ok=True)
+        full_path = os.path.join(full_dir, filename)
+        with open(full_path, 'w', encoding='utf-8') as f:
+            pass

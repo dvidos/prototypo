@@ -58,14 +58,15 @@ class BackendGeneratorPlugin:
             "db_url": db_url,
             "controllers": context.backend_app.controllers
         })
-        context.write_out_file("services/backend", "app.py", text)
+        context.write_out_file("services/backend/app.py", text)
+        context.create_out_file("services/backend/controllers/__init__.py")
 
     def generate_controllers(self, context: RunContext):
         for controller in context.backend_app.controllers:
             text = self._renderer.render("controller.py", {
                 "controller": controller
             })
-            context.write_out_file("services/backend/controllers", f"{controller.name.lower()}.py", text)
+            context.write_out_file(f"services/backend/controllers/{controller.name.lower()}.py", text)
 
 
     def get_db_url(self, context: RunContext):
@@ -83,9 +84,9 @@ class BackendGeneratorPlugin:
 
     def generate_dockerfile(self, context: RunContext):
         text = self._renderer.render("Dockerfile", {})
-        context.write_out_file("services/backend", "Dockerfile", text)
+        context.write_out_file("services/backend/Dockerfile", text)
 
     def generate_requirements_txt(self, context: RunContext):
         text = self._renderer.render("requirements.txt", {})
-        context.write_out_file("services/backend", "requirements.txt", text)
+        context.write_out_file("services/backend/requirements.txt", text)
 

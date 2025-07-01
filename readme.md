@@ -42,3 +42,11 @@ CREATE TABLE Customer (
 
 Also, any file existing in the plugins folder, that contains a `Plugin` class
 will be loaded.
+
+## ports in generated system
+
+So far the following ports are defined:
+
+* 8000 - frontend, GET / and go from there
+* 8080 - backend, endpoints start with "/api"
+* 5432 - database, PostgreSQL
