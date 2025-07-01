@@ -1,4 +1,6 @@
 import re
+from typing import Optional
+from core.model.block import Block, Assignment
 
 # Constants
 T_LBRACE = '{'
@@ -8,7 +10,7 @@ COMMENT_CHAR = '#'
 def strip_inline_comment(line):
     return line.split(COMMENT_CHAR, 1)[0].rstrip()
 
-def parse_assignment_line(line):
+def parse_assignment_line(line) -> Optional[Assignment]:
     """
     Parse a single assignment line:
     Possible formats:
@@ -35,11 +37,10 @@ def parse_assignment_line(line):
         a_type = None
         a_name = left_parts[0]
 
-    return {'type': a_type, 'name': a_name, 'value': value}
+    return Assignment(type=a_type, name=a_name, value=value)
 
-def parse_block_lines(lines, start_index=0):
-    assignments = []
-    children = []
+
+def parse_block_lines(block: Block, lines, start_index=0) -> int:
     i = start_index
 
     while i < len(lines):
@@ -49,7 +50,7 @@ def parse_block_lines(lines, start_index=0):
             continue
 
         if line == T_RBRACE:
-            return {'assignments': assignments, 'children': children}, i + 1
+            return i + 1
 
         if line.endswith(T_LBRACE):
             prefix = line[:-1].strip()
@@ -59,19 +60,19 @@ def parse_block_lines(lines, start_index=0):
             else:
                 block_type, block_name = None, parts[0]
 
-            nested_block, next_i = parse_block_lines(lines, i + 1)
-            nested_block.update({'type': block_type, 'name': block_name})
-            children.append(nested_block)
+            nested_block = Block(name=block_name, type=block_type)
+            next_i = parse_block_lines(nested_block, lines, i + 1)
+            block.children.append(nested_block)
             i = next_i
         else:
             assignment = parse_assignment_line(line)
             if assignment:
-                assignments.append(assignment)
+                block.assignments.append(assignment)
             i += 1
 
     raise SyntaxError("Expected '}' but reached end of input")
 
-def parse_blocks(text):
+def parse_blocks(text) -> list[Block]:
     """
     Parse top-level blocks from the whole text.
     Supports:
@@ -90,8 +91,8 @@ def parse_blocks(text):
 
         if line == T_LBRACE:
             # anonymous block at top level
-            block, next_i = parse_block_lines(lines, i + 1)
-            block.update({'type': None, 'name': None})
+            block = Block(name=None, type=None)
+            next_i = parse_block_lines(block, lines, i + 1)
             blocks.append(block)
             i = next_i
             continue
@@ -104,9 +105,25 @@ def parse_blocks(text):
             else:
                 block_type, block_name = None, parts[0]
 
-            block, next_i = parse_block_lines(lines, i + 1)
-            block.update({'type': block_type, 'name': block_name})
+            block = Block(name=block_name, type=block_type)
+            next_i = parse_block_lines(block, lines, i + 1)
             blocks.append(block)
+            i = next_i
+            continue
+
+        if line.endswith(T_LBRACE + T_RBRACE):
+            prefix = line[:-2].strip()
+            parts = prefix.split(None, 1)
+            if len(prefix) == 0:
+                block_type, block_name = None, None
+            elif len(parts) == 2:
+                block_type, block_name = parts
+            else:
+                block_type, block_name = None, parts[0]
+
+            block = Block(name=block_name, type=block_type)
+            blocks.append(block)
+            next_i = i + 1
             i = next_i
             continue
 

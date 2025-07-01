@@ -59,10 +59,10 @@ class PluginManager:
                 self._run_block_hook_recursively(callback, block, reg.block_types, context)
 
     def _run_block_hook_recursively(self, callback, block, block_types: List, context: RunContext):
-        if block_types and block['type'] not in block_types:
+        if block_types and block.type not in block_types:
             return
         callback(block, context)
-        for child in block['children']:
+        for child in block.children:
             self._run_block_hook_recursively(callback, child, block_types, context)
 
     def list_plugins(self):

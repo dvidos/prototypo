@@ -1,6 +1,5 @@
-import os
 from jinja2 import Environment, FileSystemLoader
-from core.template_utils import (
+from utils.language_utils import (
     to_plural,
     to_singular,
     to_snake_case,
