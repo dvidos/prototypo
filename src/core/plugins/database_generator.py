@@ -10,7 +10,7 @@ class DatabaseGeneratorPlugin:
             name="Database Generator",
             system_hooks=[
                 SystemHook(CompilerPhase.SYS_INIT, self.on_init),
-                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
+                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate)
             ]
         )
 
@@ -30,14 +30,5 @@ class DatabaseGeneratorPlugin:
         ))
         context.add_volume("pgdata")
 
-    def validate(self, block, context: RunContext):
-        ...
-
-    def transform(self, block, context: RunContext):
-        ...
-
-    def generate(self, block, context: RunContext):
-        ...
-
-    def on_finalize(self, blocks, context: RunContext):
+    def on_generate(self, blocks, context: RunContext):
         ...

@@ -10,14 +10,14 @@ class DockerComposeGeneratorPlugin:
             name="docker-compose Generator",
             system_hooks=[
                 SystemHook(CompilerPhase.SYS_INIT, self.on_init),
-                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
+                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate)
             ],
         )
 
     def on_init(self, blocks, context: RunContext):
         ...
 
-    def on_finalize(self, blocks, context: RunContext):
+    def on_generate(self, blocks, context: RunContext):
         services = {}
         for svc in context.services.values():
             service = {}

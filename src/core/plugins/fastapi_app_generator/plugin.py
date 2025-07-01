@@ -16,7 +16,7 @@ class BackendGeneratorPlugin:
             name="Backend App Generator",
             system_hooks=[
                 SystemHook(CompilerPhase.SYS_INIT, self.on_init),
-                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize),
+                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate),
             ]
         )
 
@@ -30,7 +30,7 @@ class BackendGeneratorPlugin:
             depends_on=["db"]
         ))
 
-    def on_finalize(self, blocks, context: RunContext):
+    def on_generate(self, blocks, context: RunContext):
         self.generate_app_py(context)
         self.generate_controllers(context)
         self.generate_requirements_txt(context)

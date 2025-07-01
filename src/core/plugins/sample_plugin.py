@@ -8,12 +8,13 @@ class SamplePlugin:
         return PluginRegistration(name="Sample Plugin",
             system_hooks=[
                 SystemHook(CompilerPhase.SYS_INIT, self.on_init),
+                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate),
                 SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
             ],
             block_hooks=[
                 BlockHook(CompilerPhase.VALIDATE, "*", self.validate),
                 BlockHook(CompilerPhase.TRANSFORM, "*", self.transform),
-                BlockHook(CompilerPhase.GENERATE, "*", self.generate),
+                BlockHook(CompilerPhase.POPULATE, "*", self.populate),
             ]
         )
 
@@ -33,8 +34,12 @@ class SamplePlugin:
         # print("[SamplePlugin] transform(), block=" + block['name'])
         ...
 
-    def generate(self, block, context: RunContext):
-        # print("[SamplePlugin] generate(), block=" + block['name'])
+    def populate(self, block, context: RunContext):
+        # print("[SamplePlugin] populate(), block=" + block['name'])
+        ...
+
+    def on_generate(self, blocks, context: RunContext):
+        # print("[SamplePlugin] on_generate()")
         ...
 
     def on_finalize(self, blocks, context: RunContext):

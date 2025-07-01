@@ -12,11 +12,11 @@ class EntityScaffoldingPlugin:
         return PluginRegistration(
             name="Entity Scaffolding Plugin",
             block_hooks=[
-                BlockHook(CompilerPhase.GENERATE, "entity", self.generate),
+                BlockHook(CompilerPhase.POPULATE, "entity", self.populate),
             ]
         )
 
-    def generate(self, block, context: RunContext):
+    def populate(self, block, context: RunContext):
         if block.type != "entity":
             return
 

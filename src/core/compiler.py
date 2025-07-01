@@ -22,7 +22,8 @@ def compile_model(text):
         _run_phase(manager, CompilerPhase.SYS_INIT, True, blocks, context)
         _run_phase(manager, CompilerPhase.VALIDATE, False, blocks, context)
         _run_phase(manager, CompilerPhase.TRANSFORM, False, blocks, context)
-        _run_phase(manager, CompilerPhase.GENERATE, False, blocks, context)
+        _run_phase(manager, CompilerPhase.POPULATE, False, blocks, context)
+        _run_phase(manager, CompilerPhase.SYS_GENERATE_OUT, True, blocks, context)
         _run_phase(manager, CompilerPhase.SYS_FINALIZE, True, blocks, context)
     except Exception as e:
         print("Errors! " + str(e))

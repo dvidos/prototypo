@@ -16,7 +16,7 @@ class ReactAppGeneratorPlugin:
             name="React App Generator",
             system_hooks=[
                 SystemHook(CompilerPhase.SYS_INIT, self.on_init),
-                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
+                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate)
             ]
         )
 
@@ -30,7 +30,7 @@ class ReactAppGeneratorPlugin:
             depends_on=["backend"]
         ))
 
-    def on_finalize(self, blocks, context: RunContext):
+    def on_generate(self, blocks, context: RunContext):
         self.generate_react_app(context)
         self.generate_dockerfile(context)
         self.generate_package_json(context)
