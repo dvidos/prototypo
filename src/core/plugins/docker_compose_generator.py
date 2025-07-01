@@ -3,10 +3,10 @@ import yaml
 from core.plugin_manager import PluginRegistration
 from core.run_context import RunContext
 
-class DockerComposeGenerator:
+class DockerComposeGeneratorPlugin:
     def register(self):
         return PluginRegistration(
-            name="Database Generator",
+            name="docker-compose Generator",
             block_types=[],
             hooks={
                 "on_init": self.on_init,

@@ -11,8 +11,9 @@ class SqlGeneratorPlugin:
         )
 
     def generate(self, block, context):
-        print(f"[SQL Plugin] Processing entity: {block.name}")
-        print(self._generate_sql(block))
+        # print(f"[SQL Plugin] Processing entity: {block.name}")
+        # print(self._generate_sql(block))
+        ...
 
     def _generate_sql(self, block):
         sql_statements = []

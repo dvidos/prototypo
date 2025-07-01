@@ -4,4 +4,4 @@
 set -e
 
 echo "Running docker services..."
-docker compose -f out/docker-compose.yml up backend --build
+docker compose -f out/docker-compose.yml up frontend

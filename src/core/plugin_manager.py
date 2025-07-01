@@ -48,6 +48,7 @@ class PluginManager:
     def run_hook_with_args(self, hook_name, blocks, context: RunContext):
         for reg in self.registrations:
             if hook_name in reg.hooks:
+                print("- " + hook_name + "(blocks) on " + reg.name)
                 reg.hooks[hook_name](blocks, context)
 
     def run_hook_per_block(self, hook_name, blocks, context: RunContext):
@@ -56,14 +57,15 @@ class PluginManager:
                 continue
             callback = reg.hooks[hook_name]
             for block in blocks:
-                self._run_block_hook_recursively(callback, block, reg.block_types, context)
+                self._run_block_hook_recursively(reg, hook_name, callback, block, reg.block_types, context)
 
-    def _run_block_hook_recursively(self, callback, block, block_types: List, context: RunContext):
+    def _run_block_hook_recursively(self, registration, hook_name, callback, block, block_types: List, context: RunContext):
         if block_types and block.type not in block_types:
             return
+        print("- " + hook_name + "(" + str(block.type) + " " + str(block.name) + ") on " + registration.name)
         callback(block, context)
         for child in block.children:
-            self._run_block_hook_recursively(callback, child, block_types, context)
+            self._run_block_hook_recursively(registration, hook_name, callback, child, block_types, context)
 
     def list_plugins(self):
         for registration in self.registrations:

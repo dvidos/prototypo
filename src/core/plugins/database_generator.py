@@ -7,7 +7,7 @@ class DatabaseGeneratorPlugin:
     def register(self):
         return PluginRegistration(
             name="Database Generator",
-            block_types=[],
+            block_types=["entity"],
             hooks={
                 "on_init": self.on_init,
                 "validate": self.validate,
