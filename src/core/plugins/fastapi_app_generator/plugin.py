@@ -44,6 +44,7 @@ class BackendGeneratorPlugin:
 
     def on_finalize(self, blocks, context: RunContext):
         self.generate_app_py(context)
+        self.generate_controllers(context)
         self.generate_requirements_txt(context)
         self.generate_dockerfile(context)
 
@@ -55,11 +56,16 @@ class BackendGeneratorPlugin:
 
         text = self._renderer.render("app.py", {
             "db_url": db_url,
-            "endpoints": context.backend_app.endpoints
+            "controllers": context.backend_app.controllers
         })
-        # we need to generate the various endpoints, based on the context app
-
         context.write_out_file("services/backend", "app.py", text)
+
+    def generate_controllers(self, context: RunContext):
+        for controller in context.backend_app.controllers:
+            text = self._renderer.render("controller.py", {
+                "controller": controller
+            })
+            context.write_out_file("services/backend/controllers", f"{controller.name.lower()}.py", text)
 
 
     def get_db_url(self, context: RunContext):

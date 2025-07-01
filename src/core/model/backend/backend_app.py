@@ -1,4 +1,6 @@
 from typing import List, Optional
+
+from .controller import Controller
 from .endpoint import Endpoint
 from .consumer import Consumer
 from .bg_task import BackgroundTask
@@ -10,12 +12,12 @@ class BackendApp:
 
     def __init__(self, name: str):
         self.name = name
-        self.endpoints: List[Endpoint] = []
+        self.controllers: List[Controller] = []
         self.consumers: List[Consumer] = []
         self.bg_tasks: List[BackgroundTask] = []
 
-    def add_endpoint(self, endpoint: Endpoint):
-        self.endpoints.append(endpoint)
+    def add_controller(self, controller: Controller):
+        self.controllers.append(controller)
 
     def add_consumer(self, consumer: Consumer):
         self.consumers.append(consumer)

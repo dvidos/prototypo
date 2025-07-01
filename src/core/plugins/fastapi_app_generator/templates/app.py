@@ -1,11 +1,19 @@
 from fastapi import FastAPI
 from databases import Database
 from pydantic import BaseModel
+from controllers import {% for controller in controllers %}{{ controller.name|lower }}{% if not loop.last %}, {% endif %}{% endfor %}
+
 
 app = FastAPI()
 
 DATABASE_URL = "{{ db_url }}"
 database = Database(DATABASE_URL)
+
+{% for controller in controllers %}
+app.include_router({{ controller.name|lower }}.router, prefix="/{{ controller.name|lower }}", tags=["{{ controller.name|lower }}"])
+{% endfor %}
+
+
 
 @app.on_event("startup")
 async def startup():
@@ -23,33 +31,11 @@ class Item(BaseModel):
 async def root():
     return {"message": "Hello from FastAPI"}
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    query = "SELECT id, name FROM items WHERE id = :item_id"
-    result = await database.fetch_one(query=query, values={"item_id": item_id})
-    if result:
-        return {"id": result['id'], "name": result['name']}
-    return {"error": "Item not found"}
+# @app.get("/items/{item_id}")
+# async def read_item(item_id: int):
+#     query = "SELECT id, name FROM items WHERE id = :item_id"
+#     result = await database.fetch_one(query=query, values={"item_id": item_id})
+#     if result:
+#         return {"id": result['id'], "name": result['name']}
+#     return {"error": "Item not found"}
 
-{# Endpoints definitions #}
-{% for endpoint in endpoints %}
-@app.{{ endpoint.method | lower }}("{{ endpoint.path }}", name="{{ endpoint.name }}", summary="{{ endpoint.summary }}")
-async def {{ endpoint.handler_name }}({%
-    if endpoint.identifier_name and endpoint.request_model
-        %}{{ endpoint.identifier_name }}: int, request: {{ endpoint.request_model }}{%
-    elif endpoint.identifier_name and not endpoint.request_model
-        %}{{endpoint.identifier_name}}: int{%
-    elif not endpoint.identifier_name and endpoint.request_model
-        %}request: {{endpoint.request_model}}{%
-    else
-        %}{%
-    endif %}) -> {%
-    if endpoint.response_model
-       %}{{ endpoint.response_model }}{%
-    else
-        %}dict{%
-    endif %}:
-    # TODO: Implement the logic for {{ endpoint.name }}
-    return {"message": "Endpoint {{ endpoint.name }} is not implemented yet"}
-
-{% endfor %}

@@ -1,3 +1,5 @@
+from core.model.backend.controller import Controller
+from core.model.backend.data_model import DataModel
 from core.model.backend.endpoint import Endpoint
 from core.plugin_manager import PluginRegistration
 from core.run_context import RunContext
@@ -31,25 +33,34 @@ class EntityScaffoldingPlugin:
     def generate(self, block, context: RunContext):
         if block.type != "entity":
             return
+
+        controller = Controller(to_plural(to_pascal_case(block.name)))
+
+        controller.models.append(DataModel(to_pascal_case(block.name) + "Response", {"attr1": "str"}))
+        controller.models.append(DataModel(to_pascal_case(block.name) + "CreateRequest", {"attr1": "str"}))
+        controller.models.append(DataModel(to_pascal_case(block.name) + "UpdateRequest", {"attr1": "str"}))
+
+        identifier_name = to_singular(block.name.lower()) + "_id"
+
         # generate base CRUD endpoints for the entity
-        context.backend_app.add_endpoint(Endpoint(
-            path="/" +  to_plural(block.name.lower()),
+        controller.endpoints.append(Endpoint(
+            path="/",
             method="GET",
             handler_name=f"get_{to_plural(block.name.lower())}",
             name="List " + to_plural(block.name),
-            summary=f"Get all {to_plural(block.name)}",
+            summary=f"Get all {to_plural(block.name)}, requires pagination, filtering, sorting, etc.",
         ))
-        context.backend_app.add_endpoint(Endpoint(
-            path="/" +  to_plural(block.name.lower()) + "/{id}",
-            identifier_name="id",
+        controller.endpoints.append(Endpoint(
+            path="/{id}",
+            identifier_name=identifier_name,
             method="GET",
             handler_name=f"get_{to_singular(block.name.lower())}",
             response_model=to_pascal_case(block.name) + "Response",
             name="Read " + to_singular(block.name),
             summary=f"Get one {to_singular(block.name)}",
         ))
-        context.backend_app.add_endpoint(Endpoint(
-            path="/" +  to_plural(block.name.lower()),
+        controller.endpoints.append(Endpoint(
+            path="/",
             method="POST",
             handler_name=f"create_{to_singular(block.name.lower())}",
             request_model=to_pascal_case(block.name) + "CreateRequest",
@@ -57,9 +68,9 @@ class EntityScaffoldingPlugin:
             name="Create " + to_singular(block.name),
             summary=f"Create a new {to_singular(block.name)}",
         ))
-        context.backend_app.add_endpoint(Endpoint(
-            path="/" +  to_plural(block.name.lower()) + "/{id}",
-            identifier_name="id",
+        controller.endpoints.append(Endpoint(
+            path="/{id}",
+            identifier_name=identifier_name,
             method="PUT",
             handler_name=f"update_{to_singular(block.name.lower())}",
             request_model=to_pascal_case(block.name) + "UpdateRequest",
@@ -67,15 +78,18 @@ class EntityScaffoldingPlugin:
             name="Update " + to_singular(block.name),
             summary=f"Update an existing {to_singular(block.name)}",
         ))
-        context.backend_app.add_endpoint(Endpoint(
-            path="/" +  to_plural(block.name.lower()) + "/{id}",
-            identifier_name="id",
+        controller.endpoints.append(Endpoint(
+            path="/{id}",
+            identifier_name=identifier_name,
             method="DELETE",
             handler_name=f"delete_{to_singular(block.name.lower())}",
             name="Delete " + to_singular(block.name),
             summary=f"Delete an existing {to_singular(block.name)}",
         ))
         # then we could generate one endpoint for each action (subscribe, unsubscribe, etc.)
+
+
+        context.backend_app.add_controller(controller)
 
     def on_finalize(self, blocks, context: RunContext):
         ...
