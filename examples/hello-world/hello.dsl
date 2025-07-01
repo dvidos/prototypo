@@ -1,6 +1,7 @@
 entity Customer {
-  fields {
+  attributes {
     Fullname
+    Email
     Address
   }
 }

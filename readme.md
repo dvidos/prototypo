@@ -23,7 +23,7 @@ Given the input in the `hello.dsl` file:
 
 ```
 entity Customer {
-  fields {
+  attributes {
     Fullname
     Address
   }

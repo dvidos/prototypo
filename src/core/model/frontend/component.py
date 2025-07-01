@@ -1,4 +1,3 @@
-# generate component code
 from typing import List, Optional
 
 

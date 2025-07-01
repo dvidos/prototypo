@@ -3,6 +3,8 @@ from typing import Dict, List
 from core.model.service_definition import ServiceDefinition
 from core.model.backend.backend_app import BackendApp
 from core.model.frontend.frontend_app import FrontendApp
+from core.model.relational_schema.schema import Schema
+
 
 class RunContext:
     def __init__(self, out_dir = "out"):
@@ -13,6 +15,7 @@ class RunContext:
         self.volumes = []
         self.backend_app = BackendApp("backend")
         self.frontend_app = FrontendApp("frontend")
+        self.db_schema = Schema()
 
     def error(self, message):
         self.errors.append(message)
