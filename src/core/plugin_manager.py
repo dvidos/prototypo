@@ -2,15 +2,11 @@ from typing import List
 import importlib
 import inspect
 import os
+from core.compiler_phase import CompilerPhase
+from core.plugin_registration import PluginRegistration, SystemHook, BlockHook
 from core.run_context import RunContext
 from importlib import util
 
-
-class PluginRegistration:
-    def __init__(self, name, block_types=None, hooks=None):
-        self.name = name
-        self.block_types = block_types or []
-        self.hooks = hooks or {}
 
 class PluginManager:
     def __init__(self):
@@ -45,27 +41,33 @@ class PluginManager:
                 registration = instance.register()
                 self.registrations.append(registration)
 
-    def run_hook_with_args(self, hook_name, blocks, context: RunContext):
-        for reg in self.registrations:
-            if hook_name in reg.hooks:
-                print("- " + hook_name + "(blocks) on " + reg.name)
-                reg.hooks[hook_name](blocks, context)
 
-    def run_hook_per_block(self, hook_name, blocks, context: RunContext):
+    def run_system_hook(self, phase: CompilerPhase, blocks, context: RunContext):
         for reg in self.registrations:
-            if hook_name not in reg.hooks:
-                continue
-            callback = reg.hooks[hook_name]
-            for block in blocks:
-                self._run_block_hook_recursively(reg, hook_name, callback, block, reg.block_types, context)
+            for hook in reg.system_hooks:
+                if hook.phase != phase:
+                    continue
+                print("- " + str(hook.phase) + " on " + reg.name)
+                hook.callback(blocks, context)
 
-    def _run_block_hook_recursively(self, registration, hook_name, callback, block, block_types: List, context: RunContext):
-        if block_types and block.type not in block_types:
-            return
-        print("- " + hook_name + "(" + str(block.type) + " " + str(block.name) + ") on " + registration.name)
-        callback(block, context)
+    def run_block_hook(self, phase: CompilerPhase, blocks, context: RunContext):
+        for registration in self.registrations:
+            for hook in registration.block_hooks:
+                if hook.phase != phase:
+                    continue
+                for block in blocks:
+                    self._run_block_hook_recursively(phase, registration, hook, block, context)
+
+    def _run_block_hook_recursively(self, phase: CompilerPhase, registration: PluginRegistration, hook: BlockHook, block, context: RunContext):
+        # call hook if block type matches
+        call_needed = hook.block_type is None or hook.block_type == "*" or block.type == hook.block_type
+        if call_needed:
+            print("- " + str(hook.phase) + "(" + str(block.type) + " " + str(block.name) + ") on " + registration.name)
+            hook.callback(block, context)
+
+        # recurse
         for child in block.children:
-            self._run_block_hook_recursively(registration, hook_name, callback, child, block_types, context)
+            self._run_block_hook_recursively(phase, registration, hook, child, context)
 
     def list_plugins(self):
         for registration in self.registrations:

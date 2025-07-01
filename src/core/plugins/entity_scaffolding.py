@@ -1,7 +1,8 @@
 from core.model.backend.controller import Controller
 from core.model.backend.data_model import DataModel
 from core.model.backend.endpoint import Endpoint
-from core.plugin_manager import PluginRegistration
+from core.plugin_registration import PluginRegistration, BlockHook
+from core.compiler_phase import CompilerPhase
 from core.run_context import RunContext
 from utils.language_utils import to_plural, to_singular, to_pascal_case
 
@@ -10,25 +11,10 @@ class EntityScaffoldingPlugin:
     def register(self):
         return PluginRegistration(
             name="Entity Scaffolding Plugin",
-            block_types=['entity'],
-            hooks={
-                "on_init": self.on_init,
-                "validate": self.validate,
-                "transform": self.transform,
-                "generate": self.generate,
-                "on_finalize": self.on_finalize
-            }
+            block_hooks=[
+                BlockHook(CompilerPhase.GENERATE, "entity", self.generate),
+            ]
         )
-
-    def on_init(self, blocks, context: RunContext):
-        # we could validate if we have any entities first
-        ...
-
-    def validate(self, block, context: RunContext):
-        ...
-
-    def transform(self, block, context: RunContext):
-        ...
 
     def generate(self, block, context: RunContext):
         if block.type != "entity":
@@ -87,10 +73,6 @@ class EntityScaffoldingPlugin:
             summary=f"Delete an existing {to_singular(block.name)}",
         ))
         # then we could generate one endpoint for each action (subscribe, unsubscribe, etc.)
-
-
         context.backend_app.add_controller(controller)
 
-    def on_finalize(self, blocks, context: RunContext):
-        ...
 

@@ -1,19 +1,11 @@
-from core.plugin_manager import PluginRegistration
+from core.plugin_registration import PluginRegistration
+
 
 class SqlGeneratorPlugin:
     def register(self):
         return PluginRegistration(
-            name="Sql Generator Plugin",
-            block_types=['entity'],
-            hooks={
-                "generate": self.generate
-            }
+            name="Sql Generator Plugin"
         )
-
-    def generate(self, block, context):
-        # print(f"[SQL Plugin] Processing entity: {block.name}")
-        # print(self._generate_sql(block))
-        ...
 
     def _generate_sql(self, block):
         sql_statements = []

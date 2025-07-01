@@ -1,19 +1,20 @@
-from core.plugin_manager import PluginRegistration
+from core.compiler_phase import CompilerPhase
+from core.plugin_registration import PluginRegistration, SystemHook, BlockHook
 from core.run_context import RunContext
 
 
 class SamplePlugin:
     def register(self):
-        return PluginRegistration(
-            name="Sample Plugin",
-            block_types=[],
-            hooks={
-                "on_init": self.on_init,
-                "validate": self.validate,
-                "transform": self.transform,
-                "generate": self.generate,
-                "on_finalize": self.on_finalize
-            }
+        return PluginRegistration(name="Sample Plugin",
+            system_hooks=[
+                SystemHook(CompilerPhase.SYS_INIT, self.on_init),
+                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
+            ],
+            block_hooks=[
+                BlockHook(CompilerPhase.VALIDATE, "*", self.validate),
+                BlockHook(CompilerPhase.TRANSFORM, "*", self.transform),
+                BlockHook(CompilerPhase.GENERATE, "*", self.generate),
+            ]
         )
 
     def on_block_declared(self, block):

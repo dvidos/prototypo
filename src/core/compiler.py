@@ -1,4 +1,5 @@
 from core.parser import parse_blocks
+from core.compiler_phase import CompilerPhase
 from core.plugin_manager import PluginManager
 from core.run_context import RunContext
 import traceback
@@ -18,11 +19,11 @@ def compile_model(text):
     context = RunContext("./out/")
 
     try:
-        run_phase(manager, 'on_init', False, blocks, context)
-        run_phase(manager, 'validate', True, blocks, context)
-        run_phase(manager, 'transform', True, blocks, context)
-        run_phase(manager, 'generate', True, blocks, context)
-        run_phase(manager, 'on_finalize', False, blocks, context)
+        _run_phase(manager, CompilerPhase.SYS_INIT, True, blocks, context)
+        _run_phase(manager, CompilerPhase.VALIDATE, False, blocks, context)
+        _run_phase(manager, CompilerPhase.TRANSFORM, False, blocks, context)
+        _run_phase(manager, CompilerPhase.GENERATE, False, blocks, context)
+        _run_phase(manager, CompilerPhase.SYS_FINALIZE, True, blocks, context)
     except Exception as e:
         print("Errors! " + str(e))
         traceback.print_exc()
@@ -31,11 +32,12 @@ def compile_model(text):
     print("Success!")
 
 
-def run_phase(manager: PluginManager, hook_name: str, per_block: bool, blocks, context: RunContext):
-    if per_block:
-        manager.run_hook_per_block(hook_name, blocks, context)
+def _run_phase(manager: PluginManager, phase: CompilerPhase, is_system: bool, blocks, context: RunContext):
+    if is_system:
+        manager.run_system_hook(phase, blocks, context)
     else:
-        manager.run_hook_with_args(hook_name, blocks, context)
+        manager.run_block_hook(phase, blocks, context)
+
     if context.errors:
         raise RuntimeError("- " + "\n- ".join(context.errors))
 

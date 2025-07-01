@@ -1,6 +1,7 @@
 import os
 from core.template import TemplateRenderer
-from core.plugin_manager import PluginRegistration
+from core.plugin_registration import PluginRegistration, SystemHook
+from core.compiler_phase import CompilerPhase
 from core.run_context import RunContext
 from core.model.service_definition import ServiceDefinition
 
@@ -13,14 +14,10 @@ class BackendGeneratorPlugin:
     def register(self):
         return PluginRegistration(
             name="Backend App Generator",
-            block_types=[],
-            hooks={
-                "on_init": self.on_init,
-                "validate": self.validate,
-                "transform": self.transform,
-                "generate": self.generate,
-                "on_finalize": self.on_finalize
-            }
+            system_hooks=[
+                SystemHook(CompilerPhase.SYS_INIT, self.on_init),
+                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize),
+            ]
         )
 
     def on_init(self, blocks, context: RunContext):
@@ -32,15 +29,6 @@ class BackendGeneratorPlugin:
             ports=["8080:8080"],
             depends_on=["db"]
         ))
-
-    def validate(self, block, context: RunContext):
-        ...
-
-    def transform(self, block, context: RunContext):
-        ...
-
-    def generate(self, block, context: RunContext):
-        ...
 
     def on_finalize(self, blocks, context: RunContext):
         self.generate_app_py(context)
