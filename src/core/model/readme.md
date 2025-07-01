@@ -14,5 +14,7 @@
 
 ## information flow
 
-* from data files to internal model
+* from data files to internal model (context, backend, frontend)
 * from model to code and `docker-compose.yaml`
+  * simple services like SQL
+  * services with code (backend, frontend)

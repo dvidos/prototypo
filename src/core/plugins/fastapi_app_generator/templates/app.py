@@ -33,10 +33,23 @@ async def read_item(item_id: int):
 
 {# Endpoints definitions #}
 {% for endpoint in endpoints %}
-@app.{{ endpoint.method }}("{{ endpoint.path }}", name="{{ endpoint.name }}", summary="{{ endpoint.summary }}")
-async def {{ endpoint.name }}(
-    {% if endpoint.request_model %}request: {{ endpoint.request_model }},{% endif %}
-) -> {% if endpoint.response_model %}{{ endpoint.response_model }}{% else %}dict{% endif %}:
+@app.{{ endpoint.method | lower }}("{{ endpoint.path }}", name="{{ endpoint.name }}", summary="{{ endpoint.summary }}")
+async def {{ endpoint.handler_name }}({%
+    if endpoint.identifier_name and endpoint.request_model
+        %}{{ endpoint.identifier_name }}: int, request: {{ endpoint.request_model }}{%
+    elif endpoint.identifier_name and not endpoint.request_model
+        %}{{endpoint.identifier_name}}: int{%
+    elif not endpoint.identifier_name and endpoint.request_model
+        %}request: {{endpoint.request_model}}{%
+    else
+        %}{%
+    endif %}) -> {%
+    if endpoint.response_model
+       %}{{ endpoint.response_model }}{%
+    else
+        %}dict{%
+    endif %}:
     # TODO: Implement the logic for {{ endpoint.name }}
     return {"message": "Endpoint {{ endpoint.name }} is not implemented yet"}
+
 {% endfor %}

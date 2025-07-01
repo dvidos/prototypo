@@ -54,7 +54,8 @@ class BackendGeneratorPlugin:
             return
 
         text = self._renderer.render("app.py", {
-            "db_url": db_url
+            "db_url": db_url,
+            "endpoints": context.backend_app.endpoints
         })
         # we need to generate the various endpoints, based on the context app
 
