@@ -1,7 +1,13 @@
+from selectors import SelectSelector
+from typing import Optional
+
+from jinja2.runtime import identity
+
 from core.model.block import Block
 from core.model.backend.controller import Controller
 from core.model.backend.data_model import DataModel
 from core.model.backend.endpoint import Endpoint
+from core.model.ddd.entity import Entity, Attribute
 from core.model.relational_schema.column import DataType, Column
 from core.model.relational_schema.table import Table
 from core.plugin_registration import PluginRegistration, BlockHook
@@ -24,9 +30,125 @@ class EntityScaffoldingPlugin:
     def populate(self, block: Block, context: RunContext):
         if block.type != "entity":
             return
+        entity = self.populate_ddd_entity(block, context)
+        if not entity:
+            return
         self.populate_backend_controller(block, context)
         self.populate_frontend_screen(block, context)
-        self.populate_relational_schema(block, context)
+
+
+    def populate_ddd_entity(self, block: Block, context: RunContext) -> Optional[Entity]:
+        # here we define the DDD entity, as well as the relational schema table
+        # so, the storage strategy is defined here
+        attributes_block = block.get_child("attributes")
+        if not attributes_block:
+            context.error(f"Entity block '{block.name}' must have an 'attributes' child block with attributes defined.")
+            return None
+
+        identity = self._derive_identity_attribute_from_block(attributes_block, context)
+        if identity is None:
+            return None
+
+        entity = Entity(block.name, identity)
+        self._derive_other_attributes_from_block(attributes_block, entity, context)
+
+        table = self._derive_relational_schema_table(entity, context)
+
+        context.db_schema.add_table(table)
+        context.add_ddd_entity(entity)
+        return entity
+
+
+    def _derive_identity_attribute_from_block(self, attributes_block: Block, context: RunContext) -> Optional[Attribute]:
+        identity = None
+
+        if attributes_block.has_assignment("id"):
+            # if there is an assignment with "id", we assume it is the primary key
+            assignment = attributes_block.get_assignment("id")
+            type = assignment.type if assignment.type else "integer"
+            identity = Attribute(name="id", type=type)
+
+        if identity is None and attributes_block.has_child("id"):
+            # if there is a child block with name = "id", we assume it is the primary key
+            id_block = attributes_block.get_child("id")
+            type = id_block.get_assignment("type").value if id_block.has_assignment("type") else "integer"
+            identity = Attribute(name="id", type=type)
+
+        if identity is None:
+            # look for a subblock with "primary_key" assignment
+            for child in attributes_block.children:
+                if not child.has_assignment("primary_key"):
+                    continue
+                name = child.name if child.name else \
+                       child.get_assignment("name").value if child.has_assignment("name") else \
+                       "id"
+                type = child.get_assignment("type").value if child.has_assignment("type") else "integer"
+                identity = Attribute(name=name, type=type)
+                break
+
+        if identity is None:
+            # if no id attribute is defined, we create a default one
+            identity = Attribute(name="id", type="integer")
+
+        return identity
+
+    def _derive_other_attributes_from_block(self, attributes_block: Block, entity: Entity, context: RunContext):
+        # go over all assignments and children in the attributes block
+        for assignment in attributes_block.assignments:
+            name = assignment.name
+            if name == entity.id.name:  # skip the primary key
+                continue
+            type = assignment.type if assignment.type else "string"
+            entity.add_attribute(Attribute(name=name, type=type))
+
+        for child in attributes_block.children:
+            # either use the name of the block or the assignment "name" if it exists
+            name = child.name if child.name else \
+                   child.get_assignment("name").value if child.has_assignment("name") else \
+                   None
+            if not name:
+                context.error(f"Child blocks in attributes must have a name or 'name' assignment.")
+                continue
+            if name == entity.id.name:  # skip the primary key
+                continue
+
+            type = child.get_assignment("type").value if child.has_assignment("type") else "string"
+            entity.add_attribute(Attribute(name=name, type=type))
+            # we could also derive relationships here, but for now we just focus on attributes
+            # for example a list of OrderLines for an Order entity could be derived here
+
+    def _derive_relational_schema_table(self, entity: Entity, context: RunContext) -> Table:
+        table = Table(name=to_snake_case(to_plural(entity.name)))
+
+        # first, we add the primary key column
+        column = self._derive_relational_schema_column(entity, entity.id, context)
+        entity.id.relational_schema_column = column
+        table.add_column(column)
+
+        for attribute in entity.attributes:
+            column = self._derive_relational_schema_column(entity, attribute, context)
+            attribute.relational_schema_column = column
+            table.add_column(column)
+
+        entity.relational_schema_table = table
+        return table
+
+    def _derive_relational_schema_column(self, entity: Entity, attribute: Attribute, context: RunContext) -> Column:
+        # this method derives a relational schema column from an attribute
+        name = to_snake_case(attribute.name)
+        type = self._derive_data_type_from_attribute_type(attribute.type)
+        primary_key = (attribute.name == entity.id.name)  # if this is the id attribute, it is a primary key
+        auto_increment = (attribute.type == "integer" and primary_key)  # only integer id attributes can be auto-incremented
+        return Column(name=name, type=type, primary_key=primary_key, auto_increment=auto_increment)
+
+    def _derive_data_type_from_attribute_type(self, attribute_type: str) -> DataType:
+        return DataType.INT if attribute_type == "integer" else \
+               DataType.FLOAT if attribute_type == "float" else \
+               DataType.BOOLEAN if attribute_type == "boolean" else \
+               DataType.DATE if attribute_type == "date" else \
+               DataType.TIMESTAMP if attribute_type == "datetime" else \
+               DataType.STRING  # default to STRING if no match found
+
 
     def populate_backend_controller(self, block: Block, context: RunContext):
 
@@ -91,52 +213,4 @@ class EntityScaffoldingPlugin:
         # currently, we do not generate any frontend screens from the entity block
         # but we could add logic here to create React components, pages, etc.
         pass
-
-
-    def populate_relational_schema(self, block: Block, context: RunContext):
-        table = Table(name=to_snake_case(to_plural(block.name)))
-        schema_types = {
-            "string": DataType.STRING,
-            "integer": DataType.INT,
-            "float": DataType.FLOAT,
-            "boolean": DataType.BOOLEAN,
-            "date": DataType.DATE,
-            "datetime": DataType.TIMESTAMP,
-        }
-        has_id_column = (block.has_child("attributes") and
-                         (block.get_child("attributes").has_assignment("id")) or block.get_child("attributes").has_child("id"))
-
-        if not has_id_column:
-            # if there is no id column, we should add it as a primary key
-            table.add_column(Column(
-                name="id",
-                type=DataType.INT,
-                primary_key=True,
-                auto_increment=True
-            ))
-
-        # all attributes are in the "attributes" child block, either as assignments or as child blocks
-        if block.has_child("attributes"):
-            entity_attributes = block.get_child("attributes")
-
-            for a in entity_attributes.assignments:
-                col_type = schema_types[a.type] if a.type in schema_types else DataType.STRING
-                table.add_column(Column(
-                    name=to_snake_case(a.name),
-                    type=col_type
-                ))
-
-            for c in entity_attributes.children:
-                if not c.has_assignment("name"):
-                    context.error(f"Attribute block {c.name} must have a 'name' assignment")
-                    continue
-                c_name = c.get_assignment("name").value
-                c_type = c.get_assignment("type").value if c.has_assignment("type") else "string"
-                col_type = schema_types[c_type] if c_type in schema_types else DataType.STRING
-                table.add_column(Column(
-                    name=to_snake_case(c_name),
-                    type=col_type,
-                ))
-
-        context.db_schema.add_table(table)
 

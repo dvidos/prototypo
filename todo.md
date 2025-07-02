@@ -16,5 +16,11 @@
 * Reading TF-like syntax, into tree of blocks and assignments
 * Plugin architecture, discovers plugins in the `plugins` directory
 * Plugins can utilize templates to generate configuration / code
-* Internal core (mental) model of services, apps, entities, etc. populated from plugins
+* Internal core (mental) model of:
+  * Services (e.g. redis or application server)
+  * Entities (e.g. user, product, order)
+  * Value Types (e.g. Email, ISBN, UPC)
+  * Domain Actions (e.g. subscribe, purchase, promote)
+  * Controllers, Endpoints, DataModels
+* Internal model populated from DSL via plugins
 * Given the core model, plugins generate code for apps, configuration for docker, k8s etc.

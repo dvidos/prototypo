@@ -10,7 +10,7 @@ class DataType(Enum):
     JSON = auto()
 
 class Column:
-    def __init__(self, name: str, type: DataType, not_null=True, default=None, primary_key=False, auto_increment=False):
+    def __init__(self, name: str, type: DataType, not_null=False, default=None, primary_key=False, auto_increment=False):
         self.name = name
         self.type = type
         self.not_null = not_null

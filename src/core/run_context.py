@@ -69,20 +69,20 @@ class RunContext:
 
         self.ddd_types[value_type.name] = value_type
 
-    def has_entity(self, name: str) -> bool:
+    def has_ddd_entity(self, name: str) -> bool:
         """ Checks if a DDD entity with the given name exists. """
         return any(entity.name == name for entity in self.ddd_entities)
 
-    def get_entity(self, name: str) -> Optional[Entity]:
+    def get_ddd_entity(self, name: str) -> Optional[Entity]:
         """ Returns a DDD entity by name. """
         for entity in self.ddd_entities:
             if entity.name == name:
                 return entity
         return None
 
-    def add_entity(self, entity: Entity):
+    def add_ddd_entity(self, entity: Entity):
         """ Adds a DDD entity to the context. """
-        if self.has_entity(entity.name):
+        if self.has_ddd_entity(entity.name):
             self.error(f"Entity '{entity.name}' already exists.")
             return
 
