@@ -58,7 +58,7 @@ class BackendGeneratorPlugin:
 
 
     def get_db_url(self, context: RunContext):
-        db_service = context.services.get("db")
+        db_service = context.containerized_services.get("db")
         if not db_service:
             return None
 

@@ -19,7 +19,7 @@ class DockerComposeGeneratorPlugin:
 
     def on_generate(self, blocks, context: RunContext):
         services = {}
-        for svc in context.services.values():
+        for svc in context.containerized_services.values():
             service = {}
             if svc.build_path:
                 service["build"] = {
@@ -46,9 +46,9 @@ class DockerComposeGeneratorPlugin:
             "services": services
         }
 
-        if (len(context.volumes) > 0):
+        if (len(context.containerized_volumes) > 0):
             compose['volumes'] = {}
-            for volume in context.volumes:
+            for volume in context.containerized_volumes:
                 compose['volumes'][volume] = None
 
         os.makedirs(context.out_dir, exist_ok=True)

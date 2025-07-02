@@ -1,11 +1,10 @@
-from typing import Optional, Dict
-
-from core.model.backend.endpoint import Endpoint
+from typing import Dict
 
 
 class DataModel:
     """
     Represents a Data Model, a simple (often read-only) class
+    Maybe JSON serializable, which is used to transfer data between services
     Examples are: NewCustomerRequest, CustomerResponse, etc.
     """
     def __init__(
