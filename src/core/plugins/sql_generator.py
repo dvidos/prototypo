@@ -10,7 +10,7 @@ class SqlGeneratorPlugin:
     def _generate_sql(self, block):
         sql_statements = []
         cols = ["  id INT PRIMARY KEY AUTO_INCREMENT"]
-        for field in block.assignments:
+        for field in block._assignments:
             cols.append(f"  {field.name} VARCHAR(255)")
         sql = f"CREATE TABLE {block.name} (\n" + ",\n".join(cols) + "\n);"
         sql_statements.append(sql)

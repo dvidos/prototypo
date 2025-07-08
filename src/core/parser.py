@@ -62,12 +62,12 @@ def parse_block_lines(block: Block, lines, start_index=0) -> int:
 
             nested_block = Block(name=block_name, type=block_type)
             next_i = parse_block_lines(nested_block, lines, i + 1)
-            block.children.append(nested_block)
+            block.add_child(nested_block)
             i = next_i
         else:
             assignment = parse_assignment_line(line)
             if assignment:
-                block.assignments.append(assignment)
+                block._assignments.append(assignment)
             i += 1
 
     raise SyntaxError("Expected '}' but reached end of input")
@@ -130,3 +130,17 @@ def parse_blocks(text) -> list[Block]:
         raise SyntaxError(f"Unexpected line outside block at {i+1}: {lines[i]}")
 
     return blocks
+
+
+def update_blocks_types_and_names(blocks: list[Block]):
+    """
+    Set default types and names for blocks that do not have them.
+    This is useful for blocks that are created without explicit type or name.
+    """
+    for block in blocks:
+        if block.name is None and block.has_assignment("name"):
+            block.name = block.get_assignment("name").value
+        if block.type is None and block.has_assignment("type"):
+            block.type = block.get_assignment("type").value
+
+        update_blocks_types_and_names(block.get_children())

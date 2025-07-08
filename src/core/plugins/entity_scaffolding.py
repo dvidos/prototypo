@@ -1,15 +1,13 @@
-from selectors import SelectSelector
 from typing import Optional
 
-from jinja2.runtime import identity
-
+from core.model.backend.service import Service, Action
 from core.model.block import Block
 from core.model.backend.controller import Controller
 from core.model.backend.data_model import DataModel
 from core.model.backend.endpoint import Endpoint
-from core.model.ddd.entity import Entity, Attribute
+from core.model.backend.entity import Entity, Attribute
 from core.model.relational_schema.column import DataType, Column
-from core.model.relational_schema.table import Table
+from core.model.relational_schema.sql_table import SqlTable
 from core.plugin_registration import PluginRegistration, BlockHook
 from core.compiler_phase import CompilerPhase
 from core.run_context import RunContext
@@ -30,14 +28,15 @@ class EntityScaffoldingPlugin:
     def populate(self, block: Block, context: RunContext):
         if block.type != "entity":
             return
-        entity = self.populate_ddd_entity(block, context)
+        entity = self._create_backend_entity(block, context)
         if not entity:
             return
-        self.populate_backend_controller(block, context)
+        context.backend_app.add_entity(entity)
+
         self.populate_frontend_screen(block, context)
 
 
-    def populate_ddd_entity(self, block: Block, context: RunContext) -> Optional[Entity]:
+    def _create_backend_entity(self, block: Block, context: RunContext) -> Optional[Entity]:
         # here we define the DDD entity, as well as the relational schema table
         # so, the storage strategy is defined here
         attributes_block = block.get_child("attributes")
@@ -52,10 +51,12 @@ class EntityScaffoldingPlugin:
         entity = Entity(block.name, identity)
         self._derive_other_attributes_from_block(attributes_block, entity, context)
 
-        table = self._derive_relational_schema_table(entity, context)
+        table = self._derive_related_sql_table(entity, context)
 
-        context.db_schema.add_table(table)
-        context.add_ddd_entity(entity)
+        context.sql_schema.add_table(table)
+        entity.related_controller = self._create_backend_controller(block, context)
+        entity.related_service = self._create_backend_service(block, context)
+
         return entity
 
 
@@ -76,7 +77,7 @@ class EntityScaffoldingPlugin:
 
         if identity is None:
             # look for a subblock with "primary_key" assignment
-            for child in attributes_block.children:
+            for child in attributes_block.get_children():
                 if not child.has_assignment("primary_key"):
                     continue
                 name = child.name if child.name else \
@@ -94,14 +95,14 @@ class EntityScaffoldingPlugin:
 
     def _derive_other_attributes_from_block(self, attributes_block: Block, entity: Entity, context: RunContext):
         # go over all assignments and children in the attributes block
-        for assignment in attributes_block.assignments:
+        for assignment in attributes_block._assignments:
             name = assignment.name
             if name == entity.id.name:  # skip the primary key
                 continue
             type = assignment.type if assignment.type else "string"
             entity.add_attribute(Attribute(name=name, type=type))
 
-        for child in attributes_block.children:
+        for child in attributes_block.get_children():
             # either use the name of the block or the assignment "name" if it exists
             name = child.name if child.name else \
                    child.get_assignment("name").value if child.has_assignment("name") else \
@@ -117,20 +118,20 @@ class EntityScaffoldingPlugin:
             # we could also derive relationships here, but for now we just focus on attributes
             # for example a list of OrderLines for an Order entity could be derived here
 
-    def _derive_relational_schema_table(self, entity: Entity, context: RunContext) -> Table:
-        table = Table(name=to_snake_case(to_plural(entity.name)))
+    def _derive_related_sql_table(self, entity: Entity, context: RunContext) -> SqlTable:
+        table = SqlTable(name=to_snake_case(to_plural(entity.name)))
 
         # first, we add the primary key column
         column = self._derive_relational_schema_column(entity, entity.id, context)
-        entity.id.relational_schema_column = column
+        entity.id.related_sql_column = column
         table.add_column(column)
 
         for attribute in entity.attributes:
             column = self._derive_relational_schema_column(entity, attribute, context)
-            attribute.relational_schema_column = column
+            attribute.related_sql_column = column
             table.add_column(column)
 
-        entity.relational_schema_table = table
+        entity.related_sql_table = table
         return table
 
     def _derive_relational_schema_column(self, entity: Entity, attribute: Attribute, context: RunContext) -> Column:
@@ -150,7 +151,7 @@ class EntityScaffoldingPlugin:
                DataType.STRING  # default to STRING if no match found
 
 
-    def populate_backend_controller(self, block: Block, context: RunContext):
+    def _create_backend_controller(self, block: Block, context: RunContext):
 
         controller = Controller(to_plural(to_pascal_case(block.name)))
 
@@ -205,7 +206,30 @@ class EntityScaffoldingPlugin:
             summary=f"Delete an existing {to_singular(block.name)}",
         ))
         # then we could generate one endpoint for each action (subscribe, unsubscribe, etc.)
-        context.backend_app.add_controller(controller)
+        return controller
+
+
+    def _create_backend_service(self, block: Block, context: RunContext):
+        service = Service(to_plural(to_pascal_case(block.name)))
+
+        actions_block = block.get_child("actions")
+        if actions_block is not None:
+
+            for child in actions_block.get_children():
+                action = Action(
+                    name=child.name,
+                    description=child.get_assignment_value("description", None),
+                )
+                service.add_action(action)
+
+            for assignment in actions_block._assignments:
+                action = Action(
+                    name=assignment.name,
+                    description=assignment.value
+                )
+                service.actions.append(action)
+
+        return service
 
 
     def populate_frontend_screen(self, block: Block, context: RunContext):

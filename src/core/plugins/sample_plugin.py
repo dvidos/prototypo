@@ -5,18 +5,19 @@ from core.run_context import RunContext
 
 class SamplePlugin:
     def register(self):
-        return PluginRegistration(name="Sample Plugin",
-            system_hooks=[
-                SystemHook(CompilerPhase.SYS_INIT, self.on_init),
-                SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate),
-                SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
-            ],
-            block_hooks=[
-                BlockHook(CompilerPhase.VALIDATE, "*", self.validate),
-                BlockHook(CompilerPhase.TRANSFORM, "*", self.transform),
-                BlockHook(CompilerPhase.POPULATE, "*", self.populate),
-            ]
-        )
+        pass
+        # return PluginRegistration(name="Sample Plugin",
+        #     system_hooks=[
+        #         SystemHook(CompilerPhase.SYS_INIT, self.on_init),
+        #         SystemHook(CompilerPhase.SYS_GENERATE_OUT, self.on_generate),
+        #         SystemHook(CompilerPhase.SYS_FINALIZE, self.on_finalize)
+        #     ],
+        #     block_hooks=[
+        #         BlockHook(CompilerPhase.VALIDATE, "*", self.validate),
+        #         BlockHook(CompilerPhase.TRANSFORM, "*", self.transform),
+        #         BlockHook(CompilerPhase.POPULATE, "*", self.populate),
+        #     ]
+        # )
 
     def on_block_declared(self, block):
         # print(f"[SamplePlugin] Block declared: {block['name']}")

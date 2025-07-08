@@ -39,8 +39,8 @@ class PluginManager:
             if name.endswith("Plugin"):
                 instance = obj()
                 registration = instance.register()
-                self.registrations.append(registration)
-
+                if registration is not None:
+                    self.registrations.append(registration)
 
     def run_system_hook(self, phase: CompilerPhase, blocks, context: RunContext):
         for reg in self.registrations:
@@ -66,7 +66,7 @@ class PluginManager:
             hook.callback(block, context)
 
         # recurse
-        for child in block.children:
+        for child in block.get_children():
             self._run_block_hook_recursively(phase, registration, hook, child, context)
 
     def list_plugins(self):

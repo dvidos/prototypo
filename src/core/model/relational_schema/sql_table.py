@@ -5,7 +5,7 @@ from core.model.relational_schema.foreign_key import ForeignKey
 from core.model.relational_schema.index import Index
 
 
-class Table:
+class SqlTable:
     def __init__(
         self,
         name: str,

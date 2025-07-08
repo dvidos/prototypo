@@ -10,7 +10,7 @@ DATABASE_URL = "{{ db_url }}"
 database = Database(DATABASE_URL)
 
 {% for controller in controllers %}
-app.include_router({{ controller.name|lower }}.router, prefix="/api/{{ controller.name|lower }}", tags=["{{ controller.name|lower }}"])
+app.include_router({{controller.name | lower}}.router, prefix="/api/{{ controller.name|lower }}", tags=["{{ controller.name|lower }}"])
 {% endfor %}
 
 

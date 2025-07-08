@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-# {{ controller.name }}
+# {{ entity.name }} controller
 
 router = APIRouter()
 
 # --- data models used in http endpoints ---
+# maybe the Create, Update, Response, List etc data models here.
 
 {% for data_model in controller.models %}
 {% if data_model.attributes %}
@@ -20,7 +21,9 @@ class {{ data_model.name }}(BaseModel):
 
 {% endfor %}
 
+
 # --- actual http endpoints ---
+
 
 {% for endpoint in controller.endpoints %}
 @router.{{ endpoint.method | lower }}("{{ endpoint.path }}", name="{{ endpoint.name }}", summary="{{ endpoint.summary }}")
@@ -37,3 +40,4 @@ async def {{ endpoint.handler_name }}(
     return {"message": "Endpoint {{ endpoint.name }} is not implemented yet"}
 
 {% endfor %}
+

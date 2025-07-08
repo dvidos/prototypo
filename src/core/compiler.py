@@ -1,4 +1,4 @@
-from core.parser import parse_blocks
+from core.parser import parse_blocks, update_blocks_types_and_names
 from core.compiler_phase import CompilerPhase
 from core.plugin_manager import PluginManager
 from core.run_context import RunContext
@@ -7,6 +7,8 @@ import traceback
 
 def compile_model(text):
     blocks = parse_blocks(text)
+    update_blocks_types_and_names(blocks)
+
     manager = PluginManager()
 
     print("Loading plugins...")
@@ -20,6 +22,7 @@ def compile_model(text):
 
     try:
         _run_phase(manager, CompilerPhase.SYS_INIT, True, blocks, context)
+        _run_phase(manager, CompilerPhase.TYPE_COLLECTION, False, blocks, context)
         _run_phase(manager, CompilerPhase.VALIDATE, False, blocks, context)
         _run_phase(manager, CompilerPhase.TRANSFORM, False, blocks, context)
         _run_phase(manager, CompilerPhase.POPULATE, False, blocks, context)
@@ -41,4 +44,5 @@ def _run_phase(manager: PluginManager, phase: CompilerPhase, is_system: bool, bl
 
     if context.errors:
         raise RuntimeError("- " + "\n- ".join(context.errors))
+
 

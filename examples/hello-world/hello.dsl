@@ -1,10 +1,22 @@
 entity Customer {
   attributes {
-    Fullname
+    LegalName
+    PreferredName
     Email
     Address
   }
-}
-environment Dev {
-    type = docker
+  actions {
+    Register
+    Subscribe {
+        description: "Subscribe to our newsletter"
+        command {
+            Email: String
+        }
+        response {
+            success: Boolean
+            message: String
+        }
+    }
+    Unsubscribe
+  }
 }

@@ -22,7 +22,7 @@ class ReactAppGeneratorPlugin:
 
     def on_init(self, blocks, context: RunContext):
         # we could validate if we have any entities first
-        context.add_service(ServiceDefinition(
+        context.add_containerized_service(ServiceDefinition(
             name="frontend",
             build_path="services/frontend",
             dockerfile="Dockerfile",
