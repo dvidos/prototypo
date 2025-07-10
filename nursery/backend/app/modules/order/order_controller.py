@@ -7,7 +7,7 @@ from app.modules.order.order_service import OrderService
 from app.modules.order.order_schemas import OrderCreate, OrderUpdate, OrderRead
 from app.dependencies import get_db
 
-router = APIRouter(prefix="/orders", tags=["orders"])
+router = APIRouter(tags=["orders"])
 
 @router.get("/", response_model=List[OrderRead])
 def list_orders(db: Session = Depends(get_db)) -> List[OrderRead]:

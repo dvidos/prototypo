@@ -21,7 +21,8 @@ class OrderUpdate(BaseModel):
     status: Optional[str] = None
 
 
-class OrderItemRead(BaseModel):
+
+class OrderLineRead(BaseModel):
     sku: str
     description: str
     qty: int
@@ -30,13 +31,12 @@ class OrderItemRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
 class OrderRead(BaseModel):
     id: int
     created_at: datetime
     customer_id: int
     total: float
-    order_lines: List[OrderItemRead]
+    order_lines: List[OrderLineRead]
     status: str
 
     model_config = ConfigDict(from_attributes=True)

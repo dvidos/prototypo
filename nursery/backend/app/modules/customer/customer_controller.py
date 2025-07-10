@@ -7,7 +7,7 @@ from app.modules.customer.customer_service import CustomerService
 from app.modules.customer.customer_schemas import CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest
 from app.dependencies import get_db
 
-router = APIRouter(prefix="/customers", tags=["customers"])
+router = APIRouter(tags=["customers"])
 
 
 @router.get("/", response_model=List[CustomerRead])
