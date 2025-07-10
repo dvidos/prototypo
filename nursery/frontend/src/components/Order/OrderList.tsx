@@ -44,7 +44,7 @@ const OrderList: React.FC = () => {
     <div>
       <h2>Orders</h2>
       <Link to="/orders/new">➕ Add Order</Link>
-      <table>
+      <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
         <thead>
           <tr>
             <th>ID</th>

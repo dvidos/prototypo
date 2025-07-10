@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import { Customer } from "../../types";
-
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axiosInstance
@@ -31,7 +31,7 @@ const CustomerList: React.FC = () => {
     try {
       await axiosInstance.delete(`/customers/${id}`);
       setCustomers(customers.filter((c) => c.id !== id));
-    } catch (err) {
+    } catch {
       alert("Failed to delete customer");
     } finally {
       setDeletingId(null);
@@ -44,23 +44,36 @@ const CustomerList: React.FC = () => {
   return (
     <div>
       <h2>Customers</h2>
-      <Link to="/customers/new">➕ Add Customer</Link>
-      <ul>
-        {customers.map((c: Customer) => (
-          <li key={c.id}>
-            {c.first_name} {c.last_name} — {c.email} — {c.address} -
-            {'\u00A0'}{/* non-breaking space */}
-            <Link to={`/customers/${c.id}/edit`}>Edit</Link>
-            {'\u00A0'}{/* non-breaking space */}
-            <button
-                onClick={() => handleDelete(c.id)}
-                disabled={deletingId === c.id}
-            >
-              {deletingId === c.id ? "Deleting..." : "Delete"}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <button onClick={() => navigate("/customers/new")}>Add Customer</button>
+      <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {customers.map((c) => (
+            <tr key={c.id}>
+              <td>{c.first_name} {c.last_name}</td>
+              <td>{c.email}</td>
+              <td>{c.address}</td>
+              <td>
+                <button onClick={() => navigate(`/customers/${c.id}/edit`)}>Edit</button>
+                {" "}
+                <button
+                  onClick={() => handleDelete(c.id)}
+                  disabled={deletingId === c.id}
+                >
+                  {deletingId === c.id ? "Deleting..." : "Delete"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
