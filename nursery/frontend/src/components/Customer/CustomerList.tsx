@@ -3,25 +3,40 @@ import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import { Customer } from "../../types";
 
+interface PaginationInfo {
+  page_num: number;
+  page_size: number;
+  total_rows: number;
+  total_pages: number;
+}
+
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchCustomers = (pageNum: number) => {
+    setLoading(true);
     axiosInstance
-      .get<Customer[]>("/customers")
+      .get("/customers", { params: { page_num: pageNum } })
       .then((res) => {
-        setCustomers(res.data);
+        setCustomers(res.data.results);
+        setPagination(res.data.pagination);
         setLoading(false);
       })
       .catch(() => {
         setError("Failed to load customers");
         setLoading(false);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchCustomers(page);
+  }, [page]);
 
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Are you sure you want to delete this customer?");
@@ -36,6 +51,14 @@ const CustomerList: React.FC = () => {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handlePrev = () => {
+    if (pagination && page > 1) setPage(page - 1);
+  };
+
+  const handleNext = () => {
+    if (pagination && page < pagination.total_pages) setPage(page + 1);
   };
 
   if (loading) return <p>Loading customers...</p>;
@@ -74,6 +97,16 @@ const CustomerList: React.FC = () => {
           ))}
         </tbody>
       </table>
+
+      {pagination && (
+        <div style={{ marginTop: "1em" }}>
+          <button onClick={handlePrev} disabled={page <= 1}>← Prev</button>
+          <span style={{ margin: "0 1em" }}>
+            Page {pagination.page_num} of {pagination.total_pages}
+          </span>
+          <button onClick={handleNext} disabled={page >= pagination.total_pages}>Next →</button>
+        </div>
+      )}
     </div>
   );
 };
