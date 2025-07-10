@@ -14,6 +14,7 @@ const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [page, setPage] = useState(1);
+  const [firstNameFilter, setFirstNameFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -22,7 +23,10 @@ const CustomerList: React.FC = () => {
   const fetchCustomers = (pageNum: number) => {
     setLoading(true);
     axiosInstance
-      .get("/customers", { params: { page_num: pageNum } })
+      .get("/customers", { params: {
+          page_num: pageNum,
+          first_name__icontains: firstNameFilter || undefined
+      } })
       .then((res) => {
         setCustomers(res.data.results);
         setPagination(res.data.pagination);
@@ -37,6 +41,14 @@ const CustomerList: React.FC = () => {
   useEffect(() => {
     fetchCustomers(page);
   }, [page]);
+
+  useEffect(() => {
+    if (page !== 1) {
+      setPage(1);
+    } else {
+      fetchCustomers(1);  // explicitly fetch if already on page 1
+    }
+  }, [firstNameFilter]);
 
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Are you sure you want to delete this customer?");
@@ -67,7 +79,21 @@ const CustomerList: React.FC = () => {
   return (
     <div>
       <h2>Customers</h2>
+
       <button onClick={() => navigate("/customers/new")}>Add Customer</button>
+
+      <div style={{ marginBottom: 12, padding: 8, border: "1px solid #ccc", borderRadius: 4 }}>
+        <strong>Filters</strong><br />
+        <input
+          type="text"
+          placeholder="First name contains..."
+          value={firstNameFilter}
+          onChange={(e) => {
+            setFirstNameFilter(e.target.value);
+          }}
+        />
+      </div>
+
       <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
         <thead>
           <tr>

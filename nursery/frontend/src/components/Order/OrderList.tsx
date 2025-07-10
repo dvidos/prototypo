@@ -15,6 +15,7 @@ const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -23,7 +24,10 @@ const OrderList: React.FC = () => {
   const fetchOrders = (pageNum: number) => {
     setLoading(true);
     axiosInstance
-      .get("/orders", { params: { page_num: pageNum } })
+      .get("/orders", { params: {
+          page_num: pageNum,
+          status__ieq: statusFilter || undefined
+      } })
       .then((res) => {
         setOrders(res.data.results);
         setPagination(res.data.pagination);
@@ -38,6 +42,14 @@ const OrderList: React.FC = () => {
   useEffect(() => {
     fetchOrders(page)
   }, [page]);
+
+  useEffect(() => {
+    if (page !== 1) {
+      setPage(1);
+    } else {
+      fetchOrders(1);  // explicitly fetch if already on page 1
+    }
+  }, [statusFilter]);
 
   const handlePrev = () => {
     if (pagination && page > 1) setPage(page - 1);
@@ -69,11 +81,26 @@ const OrderList: React.FC = () => {
     <div>
       <h2>Orders</h2>
       <button onClick={() => navigate("/orders/new")}>Add Order</button>
+
+      <div style={{ marginBottom: 12, padding: 8, border: "1px solid #ccc", borderRadius: 4 }}>
+        <strong>Filters</strong><br />
+        <input
+          type="text"
+          placeholder="Status is exactly..."
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
+
       <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
         <thead>
           <tr>
             <th>ID</th>
             <th>Customer ID</th>
+            <th>Status</th>
             <th>Created At</th>
             <th>Actions</th>
           </tr>
@@ -83,6 +110,7 @@ const OrderList: React.FC = () => {
             <tr key={order.id}>
               <td>{order.id}</td>
               <td>{order.customer_id}</td>
+              <td>{order.status}</td>
               <td>{new Date(order.created_at).toLocaleString()}</td>
               <td>
                 <button onClick={() => navigate(`/orders/${order.id}/edit`)}>Edit</button>

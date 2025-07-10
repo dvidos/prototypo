@@ -21,5 +21,6 @@ export interface Order {
   customer_id: number;
   created_at: string;
   order_lines: OrderLine[];
+  status: string;
 }
 

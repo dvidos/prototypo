@@ -1,4 +1,5 @@
 from typing import Optional, List, Tuple
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.modules.order.order import Order
 from app.utilities.pagination import Paginator, PaginationInfo
