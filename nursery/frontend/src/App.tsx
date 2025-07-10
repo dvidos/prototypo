@@ -11,9 +11,7 @@ const App: React.FC = () => {
     <Router>
       <nav style={{ marginBottom: 20 }}>
         <Link to="/customers">Customers</Link> |{" "}
-        <Link to="/customers/new">Add Customer</Link> |{" "}
-        <Link to="/orders">Orders</Link> |{" "}
-        <Link to="/orders/new">Add Order</Link>
+        <Link to="/orders">Orders</Link>
       </nav>
       <Routes>
         <Route path="/customers" element={<CustomerList />} />

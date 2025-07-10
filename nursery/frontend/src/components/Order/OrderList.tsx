@@ -43,6 +43,7 @@ const OrderList: React.FC = () => {
   return (
     <div>
       <h2>Orders</h2>
+      <Link to="/orders/new">➕ Add Order</Link>
       <table>
         <thead>
           <tr>

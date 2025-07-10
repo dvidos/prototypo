@@ -44,6 +44,7 @@ const CustomerList: React.FC = () => {
   return (
     <div>
       <h2>Customers</h2>
+      <Link to="/customers/new">➕ Add Customer</Link>
       <ul>
         {customers.map((c: Customer) => (
           <li key={c.id}>
