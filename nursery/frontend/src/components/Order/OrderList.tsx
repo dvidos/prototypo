@@ -1,41 +1,41 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
+import { Order } from "../../types";
 
-
-interface OrderLine {
-  sku: string;
-  description: string;
-  qty: number;
-  price: number;
-  ext_price: number;
-}
-
-interface Order {
-  id: number;
-  created_at: string; // or Date, parsed from ISO string
-  customer_id: number;
-  total: number;
-  order_lines: OrderLine[];
-  status: string;
-}
 
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    axiosInstance
-      .get<Order[]>("/orders")
+    axiosInstance.get("/orders")
       .then((res) => {
         setOrders(res.data);
         setLoading(false);
       })
       .catch(() => {
-        setError("Failed to load orders");
+        setError("Failed to fetch orders");
         setLoading(false);
       });
   }, []);
+
+  const handleDelete = async (id: number) => {
+    const confirmed = window.confirm("Are you sure you want to delete this order?");
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    try {
+      await axiosInstance.delete(`/orders/${id}`);
+      setOrders(orders.filter(order => order.id !== id));
+    } catch {
+      alert("Failed to delete order");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (loading) return <p>Loading orders...</p>;
   if (error) return <p>{error}</p>;
@@ -43,36 +43,34 @@ const OrderList: React.FC = () => {
   return (
     <div>
       <h2>Orders</h2>
-      {orders.map((order: Order) => (
-        <div key={order.id} style={{ border: "1px solid gray", marginBottom: 20, padding: 10 }}>
-          <p>
-            <strong>Order #{order.id}</strong> - Customer ID: {order.customer_id} - {new Date(order.created_at).toLocaleString()}<br />
-            Status: {order.status} - Total: ${order.total.toFixed(2)}
-          </p>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Ext. Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.order_lines.map((line: OrderLine) => (
-                <tr key={line.sku}>
-                  <td>{line.sku}</td>
-                  <td>{line.description}</td>
-                  <td>{line.qty}</td>
-                  <td>${line.price.toFixed(2)}</td>
-                  <td>${line.ext_price.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer ID</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map(order => (
+            <tr key={order.id}>
+              <td>{order.id}</td>
+              <td>{order.customer_id}</td>
+              <td>{new Date(order.created_at).toLocaleString()}</td>
+              <td>
+                <Link to={`/orders/${order.id}/edit`}>Edit</Link>&nbsp;
+                <button
+                  onClick={() => handleDelete(order.id)}
+                  disabled={deletingId === order.id}
+                >
+                  {deletingId === order.id ? "Deleting..." : "Delete"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

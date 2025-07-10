@@ -41,8 +41,16 @@ def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends
     order = service.get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    for field, value in order_update.dict(exclude_unset=True).items():
+
+    # Update simple fields
+    fields = order_update.dict(exclude_unset=True, exclude={"order_lines"})
+    for field, value in fields.items():
         setattr(order, field, value)
+
+    order.order_lines.clear()  # This works because of delete-orphan cascade
+    for line in order_update.order_lines:
+        order.order_lines.append(OrderLine(**line.dict()))
+
     updated = service.update_order(order)
     return OrderRead.from_orm(updated)
 

@@ -27,6 +27,7 @@ class OrderUpdateLine(BaseModel):
     ext_price: float
 
 class OrderUpdate(BaseModel):
+    customer_id: int
     order_lines: Optional[List[OrderUpdateLine]] = None
     total: Optional[float] = None
     status: Optional[str] = None

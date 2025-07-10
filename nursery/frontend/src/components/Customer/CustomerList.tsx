@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
+import { Customer } from "../../types";
 
-
-interface Customer {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  address: string;
-}
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
