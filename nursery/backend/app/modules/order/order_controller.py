@@ -2,18 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.models.order import Order
-from app.services.order_service import OrderService
-from app.schemas.order_schemas import OrderCreate, OrderUpdate, OrderRead
+from app.modules.order.order import Order
+from app.modules.order.order_service import OrderService
+from app.modules.order.order_schemas import OrderCreate, OrderUpdate, OrderRead
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-@router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
-def create_order(order: OrderCreate, db: Session = Depends(get_db)) -> OrderRead:
+@router.get("/", response_model=List[OrderRead])
+def list_orders(db: Session = Depends(get_db)) -> List[OrderRead]:
     service = OrderService(db)
-    created = service.create_order(Order(**order.dict()))
-    return OrderRead.from_orm(created)
+    orders = service.list_orders()
+    return [OrderRead.from_orm(o) for o in orders]
 
 @router.get("/{order_id}", response_model=OrderRead)
 def get_order(order_id: int, db: Session = Depends(get_db)) -> OrderRead:
@@ -22,6 +22,12 @@ def get_order(order_id: int, db: Session = Depends(get_db)) -> OrderRead:
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return OrderRead.from_orm(order)
+
+@router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
+def create_order(order: OrderCreate, db: Session = Depends(get_db)) -> OrderRead:
+    service = OrderService(db)
+    created = service.create_order(Order(**order.dict()))
+    return OrderRead.from_orm(created)
 
 @router.put("/{order_id}", response_model=OrderRead)
 def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends(get_db)) -> OrderRead:

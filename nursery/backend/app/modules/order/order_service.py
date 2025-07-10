@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
-from app.models.order import Order
+from app.modules.order.order import Order
 
 class OrderService:
     def __init__(self, db: Session) -> None:
@@ -14,6 +14,9 @@ class OrderService:
 
     def get_order(self, order_id: int) -> Optional[Order]:
         return self.db.query(Order).filter(Order.id == order_id).first()
+
+    def list_orders(self) -> List[Order]:
+        return self.db.query(Order).all()
 
     def update_order(self, order: Order) -> Order:
         self.db.commit()

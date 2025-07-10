@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
-from app.models.customer import Customer
+from app.modules.customer.customer import Customer
 
 class CustomerService:
     def __init__(self, db: Session) -> None:
@@ -14,6 +14,9 @@ class CustomerService:
 
     def get_customer(self, customer_id: int) -> Optional[Customer]:
         return self.db.query(Customer).filter(Customer.id == customer_id).first()
+
+    def list_customers(self) -> List[Customer]:
+        return self.db.query(Customer).all()
 
     def update_customer(self, customer: Customer) -> Customer:
         self.db.commit()

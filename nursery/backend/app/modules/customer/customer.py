@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
-from .base import Base
+from app.base_model import Base
 
 
 class Customer(Base):

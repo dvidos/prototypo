@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.controllers import customer_controller, order_controller
+from app.modules.customer import customer_controller
+from app.modules.order import order_controller
 
 app = FastAPI()
 

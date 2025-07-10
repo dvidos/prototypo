@@ -2,18 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.models.customer import Customer
-from app.services.customer_service import CustomerService
-from app.schemas.customer_schemas import CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest
+from app.modules.customer.customer import Customer
+from app.modules.customer.customer_service import CustomerService
+from app.modules.customer.customer_schemas import CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
-@router.post("/", response_model=CustomerRead, status_code=status.HTTP_201_CREATED)
-def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)) -> CustomerRead:
+
+@router.get("/", response_model=List[CustomerRead])
+def list_customers(db: Session = Depends(get_db)) -> List[CustomerRead]:
     service = CustomerService(db)
-    created = service.create_customer(Customer(**customer.dict()))
-    return CustomerRead.from_orm(created)
+    customers = service.list_customers()
+    return [CustomerRead.from_orm(c) for c in customers]
 
 @router.get("/{customer_id}", response_model=CustomerRead)
 def get_customer(customer_id: int, db: Session = Depends(get_db)) -> CustomerRead:
@@ -22,6 +23,12 @@ def get_customer(customer_id: int, db: Session = Depends(get_db)) -> CustomerRea
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     return CustomerRead.from_orm(customer)
+
+@router.post("/", response_model=CustomerRead, status_code=status.HTTP_201_CREATED)
+def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)) -> CustomerRead:
+    service = CustomerService(db)
+    created = service.create_customer(Customer(**customer.dict()))
+    return CustomerRead.from_orm(created)
 
 @router.put("/{customer_id}", response_model=CustomerRead)
 def update_customer(customer_id: int, customer_update: CustomerUpdate, db: Session = Depends(get_db)) -> CustomerRead:
