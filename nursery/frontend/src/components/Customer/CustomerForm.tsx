@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../api/axiosInstance";
 
 
 const CustomerForm: React.FC = () => {
@@ -16,7 +16,7 @@ const CustomerForm: React.FC = () => {
 
   useEffect(() => {
     if (isEditMode) {
-      axios.get(`http://localhost:8000/api/customers/${id}`).then((res) => {
+      axiosInstance.get(`/customers/${id}`).then((res) => {
         const c = res.data;
         setFirstName(c.first_name);
         setLastName(c.last_name);
@@ -32,10 +32,10 @@ const CustomerForm: React.FC = () => {
 
     try {
       if (isEditMode) {
-        await axios.put(`http://localhost:8000/api/customers/${id}`, payload);
+        await axiosInstance.put(`/customers/${id}`, payload);
         setMessage("Customer updated.");
       } else {
-        await axios.post("http://localhost:8000/api/customers", payload);
+        await axiosInstance.post("/customers", payload);
         setMessage("Customer added.");
       }
       navigate("/customers");  // Redirect to list
@@ -51,7 +51,7 @@ const CustomerForm: React.FC = () => {
       <input type="text" placeholder="Last Name" value={last_name} onChange={(e) => setLastName(e.target.value)} required /><br />
       <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required /><br />
       <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} /><br />
-      <button type="submit">Add Customer</button>
+      <button type="submit">{isEditMode ? "Edit" : "Add"} Customer</button>
       {message && <p>{message}</p>}
     </form>
   );

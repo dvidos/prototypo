@@ -17,10 +17,11 @@ const App: React.FC = () => {
       </nav>
       <Routes>
         <Route path="/customers" element={<CustomerList />} />
-        <Route path="/customers/:id/edit" element={<CustomerForm />} />
         <Route path="/customers/new" element={<CustomerForm />} />
+        <Route path="/customers/:id/edit" element={<CustomerForm />} />
         <Route path="/orders" element={<OrderList />} />
         <Route path="/orders/new" element={<OrderForm />} />
+        <Route path="/orders/:id/edit" element={<OrderForm />} />
         <Route path="*" element={<h2>Welcome to Nursery App</h2>} />
       </Routes>
     </Router>

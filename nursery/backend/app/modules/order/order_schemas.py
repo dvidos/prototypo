@@ -3,21 +3,32 @@ from typing import List, Optional
 from datetime import datetime
 
 
-class OrderItem(BaseModel):
-    product_id: int
-    quantity: int
+class OrderCreateLine(BaseModel):
+    sku: str
+    description: str
+    qty: int
     price: float
+    ext_price: float
 
 class OrderCreate(BaseModel):
     customer_id: int
-    items: List[OrderItem]
-    total_amount: float
+    order_lines: List[OrderCreateLine]
+    total: float
     status: str
 
 
+
+
+class OrderUpdateLine(BaseModel):
+    sku: str
+    description: str
+    qty: int
+    price: float
+    ext_price: float
+
 class OrderUpdate(BaseModel):
-    items: Optional[List[OrderItem]] = None
-    total_amount: Optional[float] = None
+    order_lines: Optional[List[OrderUpdateLine]] = None
+    total: Optional[float] = None
     status: Optional[str] = None
 
 

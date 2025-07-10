@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../api/axiosInstance";
 
 
 interface OrderLine {
@@ -25,8 +25,8 @@ const OrderList: React.FC = () => {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    axios
-      .get<Order[]>("http://localhost:8000/api/orders")
+    axiosInstance
+      .get<Order[]>("/orders")
       .then((res) => {
         setOrders(res.data);
         setLoading(false);

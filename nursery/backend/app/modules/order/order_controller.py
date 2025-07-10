@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.modules.order.order import Order
+from app.modules.order.order import Order, OrderLine
 from app.modules.order.order_service import OrderService
 from app.modules.order.order_schemas import OrderCreate, OrderUpdate, OrderRead
 from app.dependencies import get_db
@@ -24,9 +24,15 @@ def get_order(order_id: int, db: Session = Depends(get_db)) -> OrderRead:
     return OrderRead.from_orm(order)
 
 @router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
-def create_order(order: OrderCreate, db: Session = Depends(get_db)) -> OrderRead:
+def create_order(order_create: OrderCreate, db: Session = Depends(get_db)) -> OrderRead:
     service = OrderService(db)
-    created = service.create_order(Order(**order.dict()))
+    order = Order(
+        customer_id=order_create.customer_id,
+        order_lines=[OrderLine(**line.dict()) for line in order_create.order_lines],
+        total=order_create.total,
+        amount_paid=0
+    )
+    created = service.create_order(order)
     return OrderRead.from_orm(created)
 
 @router.put("/{order_id}", response_model=OrderRead)
