@@ -1,27 +1,29 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 
 
 class CustomerCreate(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     address: str
 
 
 class CustomerUpdate(BaseModel):
-    name: Optional[str] = None
+    first_name: Optional[str]
+    last_name: Optional[str]
     email: Optional[EmailStr] = None
     address: Optional[str] = None
 
 
 class CustomerRead(BaseModel):
     id: int
-    name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     address: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChangeAddressRequest(BaseModel):

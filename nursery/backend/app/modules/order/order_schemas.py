@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
+from datetime import datetime
 
 
 class OrderItem(BaseModel):
@@ -20,13 +21,23 @@ class OrderUpdate(BaseModel):
     status: Optional[str] = None
 
 
+class OrderItemRead(BaseModel):
+    sku: str
+    description: str
+    qty: int
+    price: float
+    ext_price: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OrderRead(BaseModel):
     id: int
+    created_at: datetime
     customer_id: int
-    items: List[OrderItem]
-    total_amount: float
+    total: float
+    order_lines: List[OrderItemRead]
     status: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
