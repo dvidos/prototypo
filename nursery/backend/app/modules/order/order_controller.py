@@ -1,19 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.modules.order.order import Order, OrderLine
 from app.modules.order.order_service import OrderService
 from app.modules.order.order_schemas import OrderCreate, OrderUpdate, OrderRead
 from app.dependencies import get_db
+from app.utilities.pagination import Paginator, Paginated
 
 router = APIRouter(tags=["orders"])
 
-@router.get("/", response_model=List[OrderRead])
-def list_orders(db: Session = Depends(get_db)) -> List[OrderRead]:
+@router.get("/", response_model=Paginated[OrderRead])
+def list_orders(
+        db: Session = Depends(get_db),
+        page_num: int = Query(1, ge=1),
+        page_size: int = Query(20, ge=1, le=100),
+        sort_by: Optional[str] = Query(None),
+        sort_order: Optional[str] = Query("asc", pattern="^(asc|desc)$"),
+        status__ieq: Optional[str] = None,
+):
     service = OrderService(db)
-    orders = service.list_orders()
-    return [OrderRead.from_orm(o) for o in orders]
+    [orders, pagination] = service.list_orders(
+        page_num=page_num,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        status_ieq=status__ieq
+    )
+    return Paginated[OrderRead](pagination=pagination, results=orders)
 
 @router.get("/{order_id}", response_model=OrderRead)
 def get_order(order_id: int, db: Session = Depends(get_db)) -> OrderRead:

@@ -1,6 +1,7 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 from app.modules.customer.customer import Customer
+from app.utilities.pagination import Paginator, PaginationInfo
 
 class CustomerService:
     def __init__(self, db: Session) -> None:
@@ -15,8 +16,21 @@ class CustomerService:
     def get_customer(self, customer_id: int) -> Optional[Customer]:
         return self.db.query(Customer).filter(Customer.id == customer_id).first()
 
-    def list_customers(self) -> List[Customer]:
-        return self.db.query(Customer).all()
+    def list_customers(
+            self,
+            page_num: int = 1,
+            page_size: int = 20,
+            sort_by: Optional[str] = None,
+            sort_order: str = "asc",
+            first_name_icontains: Optional[str] = None,
+    ) -> Tuple[List[Customer], PaginationInfo]:
+        query = self.db.query(Customer)
+        if first_name_icontains:
+            query = query.filter(Customer.first_name.ilike(f"%{first_name_icontains}%"))
+
+        paginator = Paginator(Customer, page_num=page_num, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
+        query, pagination = paginator.apply(query)
+        return query.all(), pagination
 
     def update_customer(self, customer: Customer) -> Customer:
         self.db.commit()

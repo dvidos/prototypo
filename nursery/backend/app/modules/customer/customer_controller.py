@@ -1,20 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.modules.customer.customer import Customer
 from app.modules.customer.customer_service import CustomerService
 from app.modules.customer.customer_schemas import CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest
 from app.dependencies import get_db
+from app.utilities.pagination import Paginator, Paginated
 
 router = APIRouter(tags=["customers"])
 
 
-@router.get("/", response_model=List[CustomerRead])
-def list_customers(db: Session = Depends(get_db)) -> List[CustomerRead]:
+@router.get("/", response_model=Paginated[CustomerRead])
+def list_customers(
+        db: Session = Depends(get_db),
+        page_num: int = Query(1, ge=1),
+        page_size: int = Query(20, ge=1, le=100),
+        sort_by: Optional[str] = Query(None),
+        sort_order: Optional[str] = Query("asc", pattern="^(asc|desc)$"),
+        first_name__icontains: Optional[str] = None,
+):
     service = CustomerService(db)
-    customers = service.list_customers()
-    return [CustomerRead.from_orm(c) for c in customers]
+    [customers, pagination] = service.list_customers(
+        page_num=page_num,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        first_name_icontains=first_name__icontains
+    )
+    return Paginated[CustomerRead](pagination=pagination, results=customers)
+
 
 @router.get("/{customer_id}", response_model=CustomerRead)
 def get_customer(customer_id: int, db: Session = Depends(get_db)) -> CustomerRead:
