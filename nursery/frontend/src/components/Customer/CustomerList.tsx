@@ -16,12 +16,13 @@ const CustomerList: React.FC = () => {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [page, setPage] = useState(1);
   const [firstNameFilter, setFirstNameFilter] = useState("");
+  const [debouncedFirstNameFilter, setDebouncedFirstNameFilter] = useState(firstNameFilter);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const fetchCustomers = (pageNum: number) => {
+  const fetchCustomers = (pageNum: number, firstNameFilter: string) => {
     setLoading(true);
     axiosInstance
       .get("/customers", { params: {
@@ -41,15 +42,19 @@ const CustomerList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCustomers(page);
-  }, [page]);
+    fetchCustomers(page, debouncedFirstNameFilter);
+  }, [page, debouncedFirstNameFilter]);
 
   useEffect(() => {
-    if (page !== 1) {
-      setPage(1);
-    } else {
-      fetchCustomers(1);  // explicitly fetch if already on page 1
-    }
+    setPage(1);
+  }, [debouncedFirstNameFilter]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedFirstNameFilter(firstNameFilter)
+    }, 500); // debounce
+
+    return () => clearTimeout(timeoutId);
   }, [firstNameFilter]);
 
   const toggleSelection = (id: number) => {
@@ -71,30 +76,14 @@ const CustomerList: React.FC = () => {
     }
   };
 
-
-  const handleDelete = async (id: number) => {
-    const confirmed = window.confirm("Are you sure you want to delete this customer?");
-    if (!confirmed) return;
-
-    setDeletingId(id);
-    try {
-      await axiosInstance.delete(`/customers/${id}`);
-      setCustomers(customers.filter((c) => c.id !== id));
-    } catch {
-      alert("Failed to delete customer");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
   const handleBulkDelete = async () => {
     const confirmed = window.confirm(`Delete ${selectedIds.length} selected customers?`);
     if (!confirmed) return;
 
     try {
       await axiosInstance.post("/customers/bulk/delete", { ids: selectedIds });
-      setCustomers(customers.filter((c) => !selectedIds.includes(c.id)));
       setSelectedIds([]);
+      fetchCustomers(page, debouncedFirstNameFilter)
     } catch {
       alert("Bulk delete failed");
     }
@@ -135,7 +124,6 @@ const CustomerList: React.FC = () => {
           Bulk Delete
         </button>
       </div>
-
 
       <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
         <thead>
