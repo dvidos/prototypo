@@ -4,9 +4,11 @@ from typing import List, Optional
 
 from app.modules.customer.customer import Customer
 from app.modules.customer.customer_service import CustomerService
-from app.modules.customer.customer_schemas import CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest
+from app.modules.customer.customer_schemas import (CustomerCreate, CustomerUpdate, CustomerRead, ChangeAddressRequest,
+                                                   CustomerBulkRequest)
 from app.dependencies import get_db
 from app.utilities.pagination import Paginator, Paginated
+from app.utilities.bulk import BulkResponse
 
 router = APIRouter(tags=["customers"])
 
@@ -67,3 +69,11 @@ def change_address(customer_id: int, req: ChangeAddressRequest, db: Session = De
     service = CustomerService(db)
     customer = service.change_address(customer_id, req.new_address)
     return CustomerRead.from_orm(customer)
+
+@router.post("/bulk/delete", response_model=BulkResponse)
+def bulk_delete(req: CustomerBulkRequest, db: Session = Depends(get_db)):
+    service = CustomerService(db)
+    # the process should be performed in bulk in the service as well
+    # it's up to the service to validate in bulk or in each individual entity
+    return service.bulk_delete(req.ids)
+

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional
+from typing import Optional, List
 
 
 class CustomerCreate(BaseModel):
@@ -28,3 +28,9 @@ class CustomerRead(BaseModel):
 
 class ChangeAddressRequest(BaseModel):
     new_address: str
+
+
+class CustomerBulkRequest(BaseModel):
+    ids: List[int]
+
+

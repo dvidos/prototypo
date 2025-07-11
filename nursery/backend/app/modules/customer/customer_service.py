@@ -2,6 +2,7 @@ from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 from app.modules.customer.customer import Customer
 from app.utilities.pagination import Paginator, PaginationInfo
+from app.utilities.bulk import BulkResponse, BulkResponseFailure
 
 class CustomerService:
     def __init__(self, db: Session) -> None:
@@ -54,3 +55,25 @@ class CustomerService:
         self.db.commit()
         self.db.refresh(customer)
         return customer
+
+    def bulk_delete(self, customer_ids: List[int]) -> BulkResponse:
+        # load all, validate all, fail some, delete all
+        successes = 0
+        failures = []
+        for customer_id in customer_ids:
+            customer = self.get_customer(customer_id)
+            if not customer:
+                failures.append(BulkResponseFailure(id=customer_id, error="Not found"))
+                continue
+            if customer.orders and len(customer.orders) > 0:
+                failures.append(BulkResponseFailure(id=customer_id, error="Customer has existing orders"))
+                continue
+            try:
+                self.db.delete(customer)
+            except Exception as e:
+                failures.append(BulkResponseFailure(id=customer_id, error=str(e)))
+                continue
+            successes += 1
+        self.db.commit()
+        return BulkResponse(success_count=successes, failures=failures)
+
