@@ -96,5 +96,13 @@ services:
       VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
 
+  consumer:
+    build:
+      context: ./consumer
+    container_name: consumer
+    depends_on:
+      - kafka
+    restart: always
+
 volumes:
   db_data:

@@ -1,0 +1,33 @@
+debezium   | 2025-07-12 16:49:50,326 INFO   ||  1 records sent during previous 00:04:11.714, last recorded offset of {server=mits} partition is {lsn_proc=26755496, messageType=INSERT, lsn=26755496, txId=746, ts_usec=1752338989580899}   [io.debezium.connector.common.BaseSourceTask]
+consumer   | INFO:root:Event received: {
+consumer   |   "before": null,
+consumer   |   "after": {
+consumer   |     "id": "f087a38d-01da-4fff-8f52-17c96337347a",
+consumer   |     "aggregate_type": "customer",
+consumer   |     "aggregate_id": "b6c8ef2e-3e8c-4d4d-a50b-6229cd0044a1",
+consumer   |     "type": "test",
+consumer   |     "payload": "{\"type\": \"custom-event\", \"description\": \"Hello from DB!\"}",
+consumer   |     "created_at": "2025-07-12T16:49:49.559712Z"
+consumer   |   },
+consumer   |   "source": {
+consumer   |     "version": "2.6.2.Final",
+consumer   |     "connector": "postgresql",
+consumer   |     "name": "mits",
+consumer   |     "ts_ms": 1752338989580,
+consumer   |     "snapshot": "false",
+consumer   |     "db": "appdb",
+consumer   |     "sequence": "[null,\"26755496\"]",
+consumer   |     "ts_us": 1752338989580899,
+consumer   |     "ts_ns": 1752338989580899000,
+consumer   |     "schema": "public",
+consumer   |     "table": "events",
+consumer   |     "txId": 746,
+consumer   |     "lsn": 26755496,
+consumer   |     "xmin": null
+consumer   |   },
+consumer   |   "op": "c",
+consumer   |   "ts_ms": 1752338990083,
+consumer   |   "ts_us": 1752338990083955,
+consumer   |   "ts_ns": 1752338990083955004,
+consumer   |   "transaction": null
+consumer   | }
