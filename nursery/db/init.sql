@@ -26,3 +26,15 @@ CREATE TABLE order_lines (
     price NUMERIC(12, 2) NOT NULL,
     ext_price NUMERIC(12, 2) NOT NULL
 );
+
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  aggregate_type TEXT NOT NULL,
+  aggregate_id UUID NOT NULL,
+  type TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE PUBLICATION appdb_pub FOR TABLE events;
+ALTER ROLE postgres WITH REPLICATION;

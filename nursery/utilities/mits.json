@@ -1,0 +1,22 @@
+{
+  "name": "mits",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "db",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "appdb",
+    "database.server.name": "mits",
+    "plugin.name": "pgoutput",
+    "table.include.list": "public.events",
+    "slot.name": "mits_slot",
+    "wublication.name": "mits_pub",
+    "topic.prefix": "mits",
+    "publication.name": "mits_pub",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+  }
+}
