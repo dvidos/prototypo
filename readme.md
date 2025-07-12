@@ -1,4 +1,4 @@
-# propotypo
+# prototypo
 
 This project is an exploration of 
 whether business semantics, 
