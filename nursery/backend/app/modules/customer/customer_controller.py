@@ -9,6 +9,8 @@ from app.modules.customer.customer_schemas import (CustomerCreate, CustomerUpdat
 from app.dependencies import get_db
 from app.utilities.pagination import Paginator, Paginated
 from app.utilities.bulk import BulkResponse
+from app.utilities.caching import redis_client, hash_key
+import json
 
 router = APIRouter(tags=["customers"])
 
@@ -22,6 +24,13 @@ def list_customers(
         sort_order: Optional[str] = Query("asc", pattern="^(asc|desc)$"),
         first_name__icontains: Optional[str] = None,
 ):
+    cache_key = "cache:customers:" + hash_key(page_num=page_num, page_size=page_size,
+                                              sort_by=sort_by, sort_order=sort_order,
+                                              first_name__icontains=first_name__icontains)
+    if cached_response := redis_client.get(cache_key):
+        print("Found in cache: " + cached_response)
+        return json.loads(cached_response)
+
     service = CustomerService(db)
     [customers, pagination] = service.list_customers(
         page_num=page_num,
@@ -30,7 +39,11 @@ def list_customers(
         sort_order=sort_order,
         first_name_icontains=first_name__icontains
     )
-    return Paginated[CustomerRead](pagination=pagination, results=customers)
+
+    response = Paginated[CustomerRead](pagination=pagination, results=customers)
+    redis_client.setex(cache_key, 10, json.dumps(response.dict()))
+    print("Saved in cache: " + json.dumps(response.dict()))
+    return response
 
 
 @router.get("/{customer_id}", response_model=CustomerRead)

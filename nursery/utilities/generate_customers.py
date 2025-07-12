@@ -2,7 +2,7 @@ import requests
 from faker import Faker
 
 API_URL = "http://localhost:8000/api/customers/"
-NUM_CUSTOMERS = 500
+NUM_CUSTOMERS = 1000
 
 fake = Faker()
 
