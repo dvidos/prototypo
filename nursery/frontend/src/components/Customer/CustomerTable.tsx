@@ -4,78 +4,25 @@ import axiosInstance from "../../api/axiosInstance";
 import { Customer } from "../../types";
 import PaginationControls from "../Common/PaginationControls"
 
-interface PaginationInfo {
-  page_num: number;
-  page_size: number;
-  total_rows: number;
-  total_pages: number;
-}
-
 interface CustomerTableProps {
-  filters: {
-    firstName: string;
-    email: string;
-    address: string;
-  };
-  page: number;
-  onPageChange: (page: number) => void;
+  entities: Customer[];
   onSelectedIdsChanged: (selectedIds: number[]) => void;
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChange, onSelectedIdsChanged }) => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+const CustomerTable: React.FC<CustomerTableProps> = ({ entities, onSelectedIdsChanged }) => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-
-  // Debounce filters
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedFilters(filters);
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [filters]);
-
-  useEffect(() => {
-    // reset page to 1 if filters change
-    onPageChange(1);
-  }, [debouncedFilters]); // only once when filters stabilize
-
-  useEffect(() => {
-    setLoading(true);
-    axiosInstance
-      .get("/customers", {
-        params: {
-          page_num: page,
-          first_name__icontains: debouncedFilters.firstName || undefined,
-          email__icontains: debouncedFilters.email || undefined,
-          address__icontains: debouncedFilters.address || undefined,
-        },
-      })
-      .then((res) => {
-        setCustomers(res.data.results);
-        setPagination(res.data.pagination);
-        setSelectedIds([]);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load customers");
-        setLoading(false);
-      });
-  }, [page, debouncedFilters]);
 
   useEffect(() => {
       onSelectedIdsChanged(selectedIds)
   }, [selectedIds]);
-  const toggleSelection = (id: number) => {
+
+  const toggleSelectRow = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const allVisibleIds = customers.map((c) => c.id);
+  const allVisibleIds = entities.map((c) => c.id);
   const areAllSelected = allVisibleIds.every(id => selectedIds.includes(id));
 
   const toggleSelectAll = () => {
@@ -85,17 +32,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
       setSelectedIds(prev => [...new Set([...prev, ...allVisibleIds])]);
     }
   };
-
-  const handlePrev = () => {
-    if (pagination && page > 1) onPageChange(page - 1);
-  };
-
-  const handleNext = () => {
-    if (pagination && page < pagination.total_pages) onPageChange(page + 1);
-  };
-
-  if (loading) return <p>Loading customers...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <>
@@ -109,13 +45,13 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
           </tr>
         </thead>
         <tbody>
-          {customers.map((c) => (
+          {entities.map((c) => (
             <tr key={c.id}>
               <td>
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(c.id)}
-                  onChange={() => toggleSelection(c.id)}
+                  onChange={() => toggleSelectRow(c.id)}
                 />
               </td>
               <td>
@@ -129,14 +65,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
           ))}
         </tbody>
       </table>
-
-      {pagination && (
-        <PaginationControls
-          pagination={pagination}
-          onPrev={handlePrev}
-          onNext={handleNext}
-        />
-      )}
     </>
   );
 };
