@@ -1,38 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
-import { Customer } from "../../types";
-import PaginationControls from "../Common/PaginationControls"
 
-interface TableColumn {
+interface TableColumn<T> {
     caption: string;
-    extractData: (entity: Customer) => string;
+    extractData: (entity: T) => string | number | React.ReactNode;
 }
 
-interface CustomerTableProps {
-  entities: Customer[];
-  idExtraction: (entity: Customer) => number;
-  columns: TableColumn[];
+interface TableProps<T> {
+  entities: T[];
+  idExtraction: (entity: T) => number;
+  columns: TableColumn<T>[];
   onSelectedIdsChanged: (selectedIds: number[]) => void;
 }
 
-function renderHeadersCell(column: TableColumn) {
+function renderHeadersCell<T>(column: TableColumn<T>) {
     return <th>{column.caption}</th>;
 }
 
-function renderHeadersRow(columns: TableColumn[]) {
+function renderHeadersRow<T>(columns: TableColumn<T>[]) {
     return columns.map((col) => renderHeadersCell(col));
 }
 
-function renderEntityCell(entity: any, column: TableColumn) {
+function renderEntityCell<T>(entity: T, column: TableColumn<T>) {
     return <td>{column.extractData(entity)}</td>;
 }
 
-function renderEntityRow(entity: any, columns: TableColumn[]): any[] {
+function renderEntityRow<T>(entity: T, id: number, columns: TableColumn<T>[]) {
     return columns.map((col) => renderEntityCell(entity, col));
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, columns, onSelectedIdsChanged }) => {
+function EntityListTable<T>({
+    entities, idExtraction, columns, onSelectedIdsChanged
+}: TableProps<T>) {
+
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, c
     );
   };
 
-  const allVisibleIds = entities.map((c) => c.id);
+  const allVisibleIds = entities.map((c) => idExtraction(c));
   const areAllSelected = allVisibleIds.every(id => selectedIds.includes(id));
 
   const toggleSelectAll = () => {
@@ -62,10 +62,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, c
         <thead>
           <tr>
             <th><input type="checkbox" checked={areAllSelected} onChange={toggleSelectAll} /></th>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Address</th>
             {renderHeadersRow(columns)}
           </tr>
         </thead>
@@ -81,15 +77,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, c
                   onChange={() => toggleSelectRow(id)}
                 />
               </td>
-              <td>{id}</td>
-              <td>
-                <Link to={`/customers/${id}/edit`}>
-                  {c.first_name} {c.last_name}
-                </Link>
-              </td>
-              <td>{c.email}</td>
-              <td>{c.address}</td>
-              {renderEntityRow(c, columns)}
+              {renderEntityRow(c, id, columns)}
             </tr>
             )}
           )}
@@ -99,4 +87,4 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, c
   );
 };
 
-export default CustomerTable;
+export default EntityListTable;

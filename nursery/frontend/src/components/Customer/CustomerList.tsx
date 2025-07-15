@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import CustomerFilters, { CustomerFilterValues } from "./CustomerFilters";
-import CustomerTable from "./CustomerTable";
 import EntityListToolbar from "../Common/EntityListToolbar";
+import EntityListTable from "../Common/EntityListTable";
 import PaginationControls from "../Common/PaginationControls";
 import { Customer } from "../../types";
 
@@ -13,6 +13,7 @@ interface PaginationInfo {  // as returned in the GET endpoint response
   total_rows: number;
   total_pages: number;
 }
+
 
 const CustomerList: React.FC = () => {
   const navigate = useNavigate();
@@ -109,11 +110,18 @@ const CustomerList: React.FC = () => {
         ]}
       />
 
-      <CustomerTable
+      <EntityListTable
         entities={customers}
         idExtraction={(customer) => customer.id}
         columns={[
-            {caption: "Last Name", extractData: (c) => c.last_name }
+          {caption: "Full Name", extractData: (c: Customer) => (
+              <Link to={`/customers/${c.id}/edit`}>
+                {c.first_name} {c.last_name}
+              </Link>
+          )},
+          {caption: "Address", extractData: (c: Customer) => c.address },
+          {caption: "Email", extractData: (c: Customer) => c.email },
+          {caption: "Last Name", extractData: (c) => c.last_name }
         ]}
         onSelectedIdsChanged={(ids) => setSelectedIds(ids)}
       />
