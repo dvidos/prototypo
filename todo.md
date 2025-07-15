@@ -3,24 +3,7 @@
 
 ## what to do / where to go
 
-(to get to next point)
-
-* narrow scope, this is becoming too bloated, focus
-* make the init sql add 2 random rows to each entity
-* then make the front end call the backend 
-  * list all entities
-  * create new entity
-  * update existing entity
-  * delete existing entity
-* make a DataModel being able to parse a block, and be translated in python dataclass
-
-
-(overall)
-
-* One full flow from UI, to backend, to database and back
-* Add caching, e.g. Redis
-* Add events queue, e.g. RabbitMQ, using outbox table
-* Add consumers for events queue, for async processing
+* Make DDD service save events along with db changes 
 * Add actions per entity
 * Ability to distribute entities to one or many microservices
 * Add plugin to create Java Spring Boot app (instead of Python FastAPI)
@@ -39,6 +22,19 @@
   * Controllers, Endpoints, DataModels
 * Internal model populated from DSL via plugins
 * Given the core model, plugins generate code for apps, configuration for docker, k8s etc.
+
+* narrow scope, this is becoming too bloated, focus
+* make the init sql add 2 random rows to each entity
+* then make the front end call the backend 
+  * list all entities
+  * create new entity
+  * update existing entity
+  * delete existing entity
+* One full flow from UI, to backend, to database and back
+* Add caching, e.g. Redis
+* Add events queue, e.g. RabbitMQ, using outbox table
+* Add consumers for events queue, for async processing
+
 
 
 ## thoughts on structural reform

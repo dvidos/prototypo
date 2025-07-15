@@ -38,6 +38,9 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app    # mount source files directly to conainer for fast dev
+      - /usr/src/app/node_modules  # prevent overwriting node_modules with empty host dir
     depends_on:
       - backend
 

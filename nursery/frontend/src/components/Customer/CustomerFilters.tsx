@@ -20,27 +20,30 @@ const CustomerFilters: React.FC<CustomerFiltersProps> = React.memo(({ filters, o
   };
 
   return (
-    <div style={{ marginBottom: 12, padding: 8, border: "1px solid #ccc", borderRadius: 4 }}>
+    <div className="ui-block">
       <strong>Filters</strong>
-      <br />
+
       <input
         type="text"
         placeholder="First name contains..."
         value={filters.firstName}
         onChange={(e) => handleChange("firstName", e.target.value)}
-        style={{ marginBottom: 8, display: "block" }}
+        style={{ marginLeft: "1em"}}
       />
+
       <input
         type="text"
         placeholder="Email contains..."
         value={filters.email}
         onChange={(e) => handleChange("email", e.target.value)}
-        style={{ marginBottom: 8, display: "block" }}
+        style={{ marginLeft: "1em"}}
       />
+
       <input
         type="text"
         placeholder="Address contains..."
         value={filters.address}
+        style={{ marginLeft: "1em"}}
         onChange={(e) => handleChange("address", e.target.value)}
       />
     </div>

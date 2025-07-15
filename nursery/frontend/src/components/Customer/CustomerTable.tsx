@@ -19,9 +19,10 @@ interface CustomerTableProps {
   };
   page: number;
   onPageChange: (page: number) => void;
+  onSelectedIdsChanged: (selectedIds: number[]) => void;
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChange }) => {
+const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChange, onSelectedIdsChanged }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -65,6 +66,9 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
       });
   }, [page, debouncedFilters]);
 
+  useEffect(() => {
+      onSelectedIdsChanged(selectedIds)
+  }, [selectedIds]);
   const toggleSelection = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -82,32 +86,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
     }
   };
 
-  const handleBulkDelete = async () => {
-    const confirmed = window.confirm(`Delete ${selectedIds.length} selected customers?`);
-    if (!confirmed) return;
-
-    try {
-      await axiosInstance.post("/customers/bulk/delete", { ids: selectedIds });
-      setSelectedIds([]);
-      // Refetch after delete
-      axiosInstance
-        .get("/customers", {
-          params: {
-            page_num: page,
-            first_name__icontains: debouncedFilters.firstName || undefined,
-            email__icontains: debouncedFilters.email || undefined,
-            address__icontains: debouncedFilters.address || undefined,
-          },
-        })
-        .then((res) => {
-          setCustomers(res.data.results);
-          setPagination(res.data.pagination);
-        });
-    } catch {
-      alert("Bulk delete failed");
-    }
-  };
-
   const handlePrev = () => {
     if (pagination && page > 1) onPageChange(page - 1);
   };
@@ -121,13 +99,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ filters, page, onPageChan
 
   return (
     <>
-      <div style={{ margin: "1em 0", background: "#e7e7e7", padding: 10 }}>
-        <strong>{selectedIds.length} selected</strong>
-        <button onClick={handleBulkDelete} disabled={selectedIds.length === 0} style={{ marginLeft: 12 }}>
-          Bulk Delete
-        </button>
-      </div>
-
       <table border={1} cellPadding={6} style={{ marginTop: 10 }}>
         <thead>
           <tr>

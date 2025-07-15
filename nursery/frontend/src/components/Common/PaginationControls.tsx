@@ -17,7 +17,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   onNext,
 }) => {
   return (
-    <div style={{ marginTop: "1em" }}>
+    <div className="ui-block">
       <button onClick={onPrev} disabled={pagination.page_num <= 1}>← Prev</button>
       <span style={{ margin: "0 1em" }}>
         Page {pagination.page_num} of {pagination.total_pages}
