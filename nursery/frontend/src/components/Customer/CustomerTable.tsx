@@ -4,12 +4,35 @@ import axiosInstance from "../../api/axiosInstance";
 import { Customer } from "../../types";
 import PaginationControls from "../Common/PaginationControls"
 
+interface TableColumn {
+    caption: string;
+    extractData: (entity: Customer) => string;
+}
+
 interface CustomerTableProps {
   entities: Customer[];
+  idExtraction: (entity: Customer) => number;
+  columns: TableColumn[];
   onSelectedIdsChanged: (selectedIds: number[]) => void;
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ entities, onSelectedIdsChanged }) => {
+function renderHeadersCell(column: TableColumn) {
+    return <th>{column.caption}</th>;
+}
+
+function renderHeadersRow(columns: TableColumn[]) {
+    return columns.map((col) => renderHeadersCell(col));
+}
+
+function renderEntityCell(entity: any, column: TableColumn) {
+    return <td>{column.extractData(entity)}</td>;
+}
+
+function renderEntityRow(entity: any, columns: TableColumn[]): any[] {
+    return columns.map((col) => renderEntityCell(entity, col));
+}
+
+const CustomerTable: React.FC<CustomerTableProps> = ({ entities, idExtraction, columns, onSelectedIdsChanged }) => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -39,30 +62,37 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ entities, onSelectedIdsCh
         <thead>
           <tr>
             <th><input type="checkbox" checked={areAllSelected} onChange={toggleSelectAll} /></th>
+            <th>ID</th>
             <th>Name</th>
             <th>Email</th>
             <th>Address</th>
+            {renderHeadersRow(columns)}
           </tr>
         </thead>
         <tbody>
-          {entities.map((c) => (
-            <tr key={c.id}>
+          {entities.map((c) => {
+            const id=idExtraction(c);
+            return (
+            <tr key={id}>
               <td>
                 <input
                   type="checkbox"
-                  checked={selectedIds.includes(c.id)}
-                  onChange={() => toggleSelectRow(c.id)}
+                  checked={selectedIds.includes(id)}
+                  onChange={() => toggleSelectRow(id)}
                 />
               </td>
+              <td>{id}</td>
               <td>
-                <Link to={`/customers/${c.id}/edit`}>
+                <Link to={`/customers/${id}/edit`}>
                   {c.first_name} {c.last_name}
                 </Link>
               </td>
               <td>{c.email}</td>
               <td>{c.address}</td>
+              {renderEntityRow(c, columns)}
             </tr>
-          ))}
+            )}
+          )}
         </tbody>
       </table>
     </>

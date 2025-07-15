@@ -111,6 +111,10 @@ const CustomerList: React.FC = () => {
 
       <CustomerTable
         entities={customers}
+        idExtraction={(customer) => customer.id}
+        columns={[
+            {caption: "Last Name", extractData: (c) => c.last_name }
+        ]}
         onSelectedIdsChanged={(ids) => setSelectedIds(ids)}
       />
 
