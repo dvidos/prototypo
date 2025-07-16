@@ -20,3 +20,9 @@ The above ecosystem is to run in a containerized
 environment, which allows execution in local docker,
 in kubernetes, or even as images in VMs.
 
+## this to do
+
+* backend, make OrderStatus a value type, return the options in some controller
+* front end, make filters a shared component, create ability to filter orders by status
+* front end, sort by clicking on columns headers
+* backend, integrate OpenAPI, page with endpoints documentation 

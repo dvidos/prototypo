@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.modules.customer import customer_controller
 from app.modules.order import order_controller
+from app.modules.order_status import order_status_controller
 
 app = FastAPI()
 
@@ -26,3 +27,4 @@ def read_root():
 
 app.include_router(customer_controller.router, prefix="/api/customers")
 app.include_router(order_controller.router, prefix="/api/orders")
+app.include_router(order_status_controller.router, prefix="/api/order_statuses")
