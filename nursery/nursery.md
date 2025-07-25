@@ -26,3 +26,24 @@ in kubernetes, or even as images in VMs.
 * front end, make filters a shared component, create ability to filter orders by status
 * front end, sort by clicking on columns headers
 * backend, integrate OpenAPI, page with endpoints documentation 
+
+## 1000 miles view
+
+* Frontend allows users or AI to perform API calls
+* API is exposed that allows actions to be triggered
+* Actions will result in state changes and triggered events
+* Events will result in async processing, further state changes and triggered events
+* Finally, all data flow into lake, for analytics purposes
+
+Concerns:
+
+* API validations act as quality guard
+* API should be idempotent, i.e. allow for retries over network failures
+* Consumers should be idempotent, i.e. allow for republishing of events without ill effects
+* Dual writes should follow at-least-once delivery principle, paired with idempotency leads to once processing
+* Multiple deploys of same code must lock resources to avoid corruption and lost updates
+* SQL changes become atomic with event publication via the outbox pattern
+* To avoid spread of downtime in sync calls, the circuit breaker pattern can enable degraded more of operation
+* Async processing can update a performant RO view (CQRS)
+* An API gateway sits in front of all backend, to empower platform-like entry.
+* If updates are required in distributed services, the Saga pattern is used.
