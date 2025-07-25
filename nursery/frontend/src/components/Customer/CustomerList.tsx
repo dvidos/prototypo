@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
-import CustomerFilters, { CustomerFilterValues } from "./CustomerFilters";
 import EntityListToolbar from "../Common/EntityListToolbar";
 import EntityListTable from "../Common/EntityListTable";
+import FiltersPanel, { FilterType } from "../Common/FiltersPanel";
 import PaginationControls from "../Common/PaginationControls";
 import { Customer } from "../../types";
 
@@ -14,13 +14,12 @@ interface PaginationInfo {  // as returned in the GET endpoint response
   total_pages: number;
 }
 
-
 const CustomerList: React.FC = () => {
   const navigate = useNavigate();
   const [desiredPage, setDesiredPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [filters, setFilters] = useState<CustomerFilterValues>({
+  const [filters, setFilters] = useState<Record<string, string | boolean | string[] | null>>({
     firstName: "",
     email: "",
     address: "",
@@ -34,15 +33,22 @@ const CustomerList: React.FC = () => {
   }, []);
 
   useEffect(() => {
+      console.log("Desired page changed:", desiredPage);
       if (pagination.page_num != desiredPage)
         fetchRows();
   }, [desiredPage]);
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log("Debounced filter change:", filters);
       fetchRows();
+    }, 300); // delay in ms
+
+    return () => clearTimeout(timeout); // cleanup if filters change again within delay
   }, [filters]);
 
   const fetchRows = async () => {
+    console.log("Fetching rows for page", desiredPage, "with filters", filters);
     try {
       setLoading(true);
       axiosInstance
@@ -59,7 +65,8 @@ const CustomerList: React.FC = () => {
           // and results, an array of rows
           setCustomers(res.data.results);
           setPagination(res.data.pagination);
-          setDesiredPage(res.data.pagination.page_num) // reset
+          if (res.data.pagination.page_num !== desiredPage)
+            setDesiredPage(res.data.pagination.page_num);
           setLoading(false);
         });
     } catch {
@@ -98,7 +105,16 @@ const CustomerList: React.FC = () => {
     <div>
       <h2>Customers</h2>
 
-      <CustomerFilters filters={filters} onChange={setFilters} />
+      <FiltersPanel
+        attributes={[
+          { name: "firstName", caption: "First name", type: FilterType.Text },
+          { name: "email", caption: "Email", type: FilterType.Text, },
+          { name: "subscribed", caption: "Subscribed", type: FilterType.Checkbox, },
+          { name: "country", caption: "Country", type: FilterType.Dropdown, options: [ { value: "us", caption: "USA" }, { value: "gr", caption: "Greece" } ] }
+        ]}
+        values={filters}
+        onValuesChanged={setFilters}
+      />
 
       <EntityListToolbar
         newRowCaption="New"
