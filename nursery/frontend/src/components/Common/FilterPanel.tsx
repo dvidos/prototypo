@@ -22,7 +22,12 @@ interface FilterPanelProps {
   onValuesChanged: (filter_values: FilterValues) => void;
 }
 
-const FilterPanel: React.FC<FilterPanelProps> = React.memo(({ attributes, values, onValuesChanged }) => {
+const FilterPanel: React.FC<FilterPanelProps> = ({ attributes, values, onValuesChanged }) => {
+  console.log("FilterPanel rendered");
+
+  useEffect(() => {
+    console.log("FilterPanel props:", { attributes, values, onValuesChanged });
+  }, [attributes, values, onValuesChanged]);
 
   const handleChange = (name: string, value: string | boolean | string[]) => {
     if (value === values[name]) return;
@@ -86,6 +91,29 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({ attributes, values
       </div>
     </div>
   );
-});
+};
 
-export default FilterPanel;
+export function shallowEqual(objA: any, objB: any): boolean {
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
+  if (keysA.length !== keysB.length) return false;
+
+  for (let key of keysA) {
+    if (objA[key] !== objB[key]) return false;
+  }
+  return true;
+}
+
+function areEqual(prevProps: FilterPanelProps, nextProps: FilterPanelProps) {
+  const same = (
+    prevProps.attributes === nextProps.attributes &&
+    prevProps.onValuesChanged === nextProps.onValuesChanged &&
+    shallowEqual(prevProps.values, nextProps.values)
+  );
+  if (!same) {
+    console.log("FilterPanel props changed:", { prevProps, nextProps });
+  }
+  return same;
+}
+
+export default React.memo(FilterPanel, areEqual);

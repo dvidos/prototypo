@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import EntityListToolbar from "../Common/EntityListToolbar";
 import EntityListTable from "../Common/EntityListTable";
-import FilterPanel, { FilterType, FilterValues } from "../Common/FilterPanel";
+import FilterPanel, { FilterType, FilterValues, shallowEqual } from "../Common/FilterPanel";
 import PaginationControls from "../Common/PaginationControls";
 import { Customer } from "../../types";
 
@@ -27,6 +27,13 @@ const CustomerList: React.FC = () => {
   const [pagination, setPagination] = useState<PaginationInfo>({page_num: 0, page_size: 1, total_rows: 0, total_pages: 0});
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+
+  const filterAttributes = useMemo(() => [
+    { name: "firstName", caption: "First name", type: FilterType.Text },
+    { name: "email", caption: "Email", type: FilterType.Text },
+    { name: "subscribed", caption: "Subscribed", type: FilterType.Checkbox },
+    { name: "country", caption: "Country", type: FilterType.Dropdown, options: [ { value: "us", caption: "USA" }, { value: "gr", caption: "Greece" } ] }
+  ], []);
 
   useEffect(() => {
       setDesiredPage(1);
@@ -74,6 +81,13 @@ const CustomerList: React.FC = () => {
     }
   };
 
+  const handleFilterValuesChanged = useCallback((v: FilterValues) => {
+    setFilterValues(prev => {
+      if (shallowEqual(prev, v)) return prev; // no change
+      return v;
+    });
+  }, []);
+
   const handleBulkDelete = async () => {
     const confirmed = window.confirm(`Delete ${selectedIds.length} selected customers?`);
     if (!confirmed) return;
@@ -100,19 +114,15 @@ const CustomerList: React.FC = () => {
   if (loading) return <p>Loading customers...</p>;
   if (error) return <p>{error}</p>;
 
+  console.log("CustomerList re-rendered");
   return (
     <div>
       <h2>Customers</h2>
 
       <FilterPanel
-        attributes={[
-          { name: "firstName", caption: "First name", type: FilterType.Text },
-          { name: "email", caption: "Email", type: FilterType.Text, },
-          { name: "subscribed", caption: "Subscribed", type: FilterType.Checkbox, },
-          { name: "country", caption: "Country", type: FilterType.Dropdown, options: [ { value: "us", caption: "USA" }, { value: "gr", caption: "Greece" } ] }
-        ]}
+        attributes={filterAttributes}
         values={filterValues}
-        onValuesChanged={setFilterValues}
+        onValuesChanged={handleFilterValuesChanged}
       />
 
       <EntityListToolbar
