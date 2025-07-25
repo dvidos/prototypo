@@ -9,8 +9,5 @@ router = APIRouter(tags=["order_statuses"])
 
 @router.get("/", response_model=List[OrderStatusRead])
 def list_statuses():
-    return [
-        OrderStatusRead(keyword=key, caption=OrderStatus._allowed_statuses[key])
-        for key in OrderStatus._allowed_statuses.keys()
-    ]
-
+    statuses = OrderStatus.all_statuses()
+    return [ OrderStatusRead(value=key, caption=statuses[key]) for key in statuses.keys() ]

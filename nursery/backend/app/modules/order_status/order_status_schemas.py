@@ -2,6 +2,6 @@ from pydantic import BaseModel
 
 
 class OrderStatusRead(BaseModel):
-    keyword: str
+    value: str
     caption: str
 
