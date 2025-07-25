@@ -10,17 +10,19 @@ export interface FilterAttribute {
   name: string;
   caption: string;
   type: FilterType;
-  // value: string | boolean | string[] | null;
   options?: { value: string; caption: string }[];
 }
 
-interface FiltersPanelProps {
+export type FilterValue = string | boolean | string[] | null;
+export type FilterValues = Record<string, FilterValue>;
+
+interface FilterPanelProps {
   attributes: FilterAttribute[];
-  values: Record<string, string | boolean | string[] | null>;
-  onValuesChanged: (filter_values: Record<string, string | boolean | string[] | null>) => void;
+  values: FilterValues;
+  onValuesChanged: (filter_values: FilterValues) => void;
 }
 
-const FiltersPanel: React.FC<FiltersPanelProps> = React.memo(({ attributes, values, onValuesChanged }) => {
+const FilterPanel: React.FC<FilterPanelProps> = React.memo(({ attributes, values, onValuesChanged }) => {
 
   const handleChange = (name: string, value: string | boolean | string[]) => {
     if (value === values[name]) return;
@@ -86,4 +88,4 @@ const FiltersPanel: React.FC<FiltersPanelProps> = React.memo(({ attributes, valu
   );
 });
 
-export default FiltersPanel;
+export default FilterPanel;

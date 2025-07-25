@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import EntityListToolbar from "../Common/EntityListToolbar";
 import EntityListTable from "../Common/EntityListTable";
-import FiltersPanel, { FilterType } from "../Common/FiltersPanel";
+import FilterPanel, { FilterType, FilterValues } from "../Common/FilterPanel";
 import PaginationControls from "../Common/PaginationControls";
 import { Customer } from "../../types";
 
@@ -19,7 +19,7 @@ const CustomerList: React.FC = () => {
   const [desiredPage, setDesiredPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [filters, setFilters] = useState<Record<string, string | boolean | string[] | null>>({
+  const [filterValues, setFilterValues] = useState<FilterValues>({
     firstName: "",
     email: "",
     address: "",
@@ -40,24 +40,24 @@ const CustomerList: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.log("Debounced filter change:", filters);
+      console.log("Debounced filter change:", filterValues);
       fetchRows();
     }, 300); // delay in ms
 
-    return () => clearTimeout(timeout); // cleanup if filters change again within delay
-  }, [filters]);
+    return () => clearTimeout(timeout); // cleanup if filterValues change again within delay
+  }, [filterValues]);
 
   const fetchRows = async () => {
-    console.log("Fetching rows for page", desiredPage, "with filters", filters);
+    console.log("Fetching rows for page", desiredPage, "with filterValues", filterValues);
     try {
       setLoading(true);
       axiosInstance
         .get("/customers/", {
           params: {
             page_num: desiredPage,
-            first_name__icontains: filters.firstName || undefined,
-            email__icontains: filters.email || undefined,
-            address__icontains: filters.address || undefined,
+            first_name__icontains: filterValues.firstName || undefined,
+            email__icontains: filterValues.email || undefined,
+            address__icontains: filterValues.address || undefined,
           },
         })
         .then((res) => {
@@ -65,8 +65,7 @@ const CustomerList: React.FC = () => {
           // and results, an array of rows
           setCustomers(res.data.results);
           setPagination(res.data.pagination);
-          if (res.data.pagination.page_num !== desiredPage)
-            setDesiredPage(res.data.pagination.page_num);
+          setDesiredPage(res.data.pagination.page_num);
           setLoading(false);
         });
     } catch {
@@ -105,15 +104,15 @@ const CustomerList: React.FC = () => {
     <div>
       <h2>Customers</h2>
 
-      <FiltersPanel
+      <FilterPanel
         attributes={[
           { name: "firstName", caption: "First name", type: FilterType.Text },
           { name: "email", caption: "Email", type: FilterType.Text, },
           { name: "subscribed", caption: "Subscribed", type: FilterType.Checkbox, },
           { name: "country", caption: "Country", type: FilterType.Dropdown, options: [ { value: "us", caption: "USA" }, { value: "gr", caption: "Greece" } ] }
         ]}
-        values={filters}
-        onValuesChanged={setFilters}
+        values={filterValues}
+        onValuesChanged={setFilterValues}
       />
 
       <EntityListToolbar
